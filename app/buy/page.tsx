@@ -182,7 +182,7 @@ function BuyContent() {
                         <p className="text-2xl font-bold text-purple-600">
                           ${shoe.price.toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-500">+ $9.99 service fee</p>
+                        <p className="text-xs text-gray-500">+ $0.99 service fee</p>
                       </div>
                       <div className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold group-hover:bg-purple-700 transition">
                         View →

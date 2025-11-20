@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         offerPrice: isCounteroffer ? validatedData.offerPrice : undefined,
         finalPrice,
         status: isCounteroffer ? "COUNTEROFFER" : "PENDING",
-        serviceFee: 9.99,
+        serviceFee: 0.99,
       },
     })
 

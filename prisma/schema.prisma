@@ -133,7 +133,7 @@ model Transaction {
   status          TransactionStatus @default(PENDING)
   offerPrice      Float?    // For counteroffers
   finalPrice      Float
-  serviceFee      Float     @default(9.99)
+  serviceFee      Float     @default(0.99)
 
   // Buyer info (for guest buyers)
   buyerEmail      String?

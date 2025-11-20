@@ -111,7 +111,7 @@ export default function Home() {
           </div>
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Service Fee:</strong> A $9.99 fee is added to each purchase to keep Shoe-Shoe running smoothly.
+              <strong>Service Fee:</strong> A $0.99 fee is added to each purchase to keep Shoe-Shoe running smoothly.
             </p>
           </div>
         </div>

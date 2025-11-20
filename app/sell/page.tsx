@@ -238,7 +238,7 @@ function SellContent() {
                 placeholder="0.00"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Note: A $9.99 service fee will be added to the buyer at checkout
+                Note: A $0.99 service fee will be added to the buyer at checkout
               </p>
             </div>
 

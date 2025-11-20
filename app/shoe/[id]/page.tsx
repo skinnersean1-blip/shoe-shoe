@@ -136,7 +136,7 @@ export default function ShoePage() {
   }
 
   const images = JSON.parse(shoe.images)
-  const serviceFee = 9.99
+  const serviceFee = 0.99
   const totalPrice = (parseFloat(offerPrice) || shoe.price) + serviceFee
 
   const getConditionColor = (condition: string) => {
@@ -231,7 +231,7 @@ export default function ShoePage() {
                 </div>
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <span>Service Fee:</span>
-                  <span>$9.99</span>
+                  <span>$0.99</span>
                 </div>
               </div>
 

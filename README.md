@@ -30,7 +30,7 @@ A full-stack marketplace for buying and selling children's shoes - singles or pa
 
 - **Notifications**: Real-time notifications for sellers on sales, counteroffers, and ratings
 
-- **Service Fee**: $9.99 fee added to each purchase
+- **Service Fee**: $0.99 fee added to each purchase
 
 ## Tech Stack
 
