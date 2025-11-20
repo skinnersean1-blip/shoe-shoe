@@ -75,11 +75,11 @@ function SignInContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8">
+    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border-4 border-purple-300">
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-purple-600">
-            Shoe-Shoe
+          <Link href="/" className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
+            Shoe Shoe
           </Link>
           <h2 className="text-2xl font-bold text-gray-800 mt-4">
             {isSignUp ? "Create Account" : "Welcome Back"}

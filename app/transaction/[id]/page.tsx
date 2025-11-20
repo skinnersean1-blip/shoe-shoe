@@ -108,7 +108,7 @@ export default function TransactionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
       </div>
     )
@@ -116,11 +116,11 @@ export default function TransactionPage() {
 
   if (error && !transaction) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Error</h2>
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-3xl shadow-lg text-center border-4 border-pink-300">
+          <h2 className="text-2xl font-fredoka font-bold text-gray-800 mb-4">Error</h2>
           <p className="text-gray-600 mb-6">{error}</p>
-          <Link href="/" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+          <Link href="/" className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full hover:from-pink-600 hover:to-purple-600 transition shadow-lg font-fredoka font-semibold">
             Go Home
           </Link>
         </div>
@@ -166,11 +166,11 @@ export default function TransactionPage() {
   const statusInfo = getStatusInfo(transaction.status)
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
       {/* Header */}
       <header className="p-6">
-        <Link href="/" className="text-3xl font-bold text-purple-600 hover:text-purple-700 transition">
-          ← Shoe-Shoe
+        <Link href="/" className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 transition drop-shadow-lg">
+          ← Shoe Shoe
         </Link>
       </header>
 

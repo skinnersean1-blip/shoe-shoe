@@ -1,4 +1,4 @@
-# Shoe-Shoe - Children's Shoe Marketplace
+# Shoe Shoe - Children's Shoe Marketplace
 
 A full-stack marketplace for buying and selling children's shoes - singles or pairs!
 

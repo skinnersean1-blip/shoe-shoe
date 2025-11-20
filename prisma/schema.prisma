@@ -1,4 +1,4 @@
-// Prisma schema for Shoe-Shoe Marketplace
+// Prisma schema for Shoe Shoe Marketplace
 
 generator client {
   provider = "prisma-client-js"

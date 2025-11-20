@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fredoka, Quicksand } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Shoe-Shoe | Children's Shoe Marketplace",
-  description: "Buy and sell children's shoes - singles or pairs",
+  title: "Shoe Shoe | Children's Shoe Marketplace",
+  description: "Buy and sell children's shoes - singles or pairs!",
 };
 
 export default function RootLayout({
@@ -26,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${fredoka.variable} ${quicksand.variable} antialiased font-quicksand`}
       >
         <Providers>{children}</Providers>
       </body>
