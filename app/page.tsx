@@ -39,10 +39,10 @@ export default function Home() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-6xl md:text-7xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
-            Welcome to Shoe Shoe!
+            Shoe Shoe
           </h2>
           <p className="text-2xl text-gray-700 max-w-2xl mx-auto font-medium">
-            The super fun marketplace for children's shoes! Buy and sell singles or pairs - perfect for kids who grow at different rates! 🎉
+            The super fun marketplace for children's shoes! Buy and sell singles or pairs! 🎉
           </p>
         </div>
 
@@ -60,7 +60,7 @@ export default function Home() {
                 Single Shoes
               </h3>
               <p className="text-gray-700 mb-6 text-lg font-medium">
-                Perfect for when one foot grows faster than the other, or you just need to replace one shoe!
+                Lost one? Find a mate! Perfect for parents looking to complete a pair! 👟
               </p>
               <div className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-cyan-600 group-hover:to-blue-600 transition shadow-lg">
                 Browse Singles →
