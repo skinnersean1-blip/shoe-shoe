@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        "bungee": ["Impact", "Arial Black", "sans-serif"],
+        "bungee": ["Bungee", "Impact", "sans-serif"],
+        "luckiest-guy": ["Luckiest Guy", "Impact", "sans-serif"],
         "quicksand": ["Verdana", "Trebuchet MS", "sans-serif"],
       },
       colors: {
