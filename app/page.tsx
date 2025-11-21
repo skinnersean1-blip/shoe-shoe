@@ -10,7 +10,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
       {/* Header */}
       <header className="p-6 flex justify-between items-center">
-        <h1 className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
+        <h1 className="text-4xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
           Shoe Shoe
         </h1>
         <div className="flex gap-4">
@@ -19,7 +19,7 @@ export default function Home() {
               <span className="text-sm text-gray-700 font-medium">Welcome, {session.user?.name || session.user?.email}</span>
               <Link
                 href="/api/auth/signout"
-                className="px-4 py-2 bg-pink-400 text-white rounded-full hover:bg-pink-500 transition shadow-md font-fredoka font-semibold"
+                className="px-4 py-2 bg-pink-400 text-white rounded-full hover:bg-pink-500 transition shadow-md font-quicksand font-semibold"
               >
                 Sign Out
               </Link>
@@ -27,7 +27,7 @@ export default function Home() {
           ) : (
             <Link
               href="/auth/signin"
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 transition shadow-lg font-fredoka font-semibold"
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 transition shadow-lg font-quicksand font-semibold"
             >
               Sign In
             </Link>
@@ -38,7 +38,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-6xl md:text-7xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
+          <h2 className="text-6xl md:text-7xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
             Shoe Shoe
           </h2>
           <p className="text-2xl text-gray-700 max-w-2xl mx-auto font-medium">
@@ -56,13 +56,13 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-200 to-blue-200 opacity-30"></div>
             <div className="relative p-8 text-center">
               <div className="text-7xl mb-4 animate-bounce">👟</div>
-              <h3 className="text-4xl font-fredoka font-bold text-cyan-600 mb-3 drop-shadow-md">
+              <h3 className="text-4xl font-luckiest-guy text-cyan-600 mb-3 drop-shadow-md">
                 Single Shoes
               </h3>
               <p className="text-gray-700 mb-6 text-lg font-medium">
                 Lost one? Find a mate! Perfect for parents looking to complete a pair! 👟
               </p>
-              <div className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-cyan-600 group-hover:to-blue-600 transition shadow-lg">
+              <div className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full font-quicksand font-bold text-lg group-hover:from-cyan-600 group-hover:to-blue-600 transition shadow-lg">
                 Browse Singles →
               </div>
             </div>
@@ -76,13 +76,13 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-pink-200 to-purple-200 opacity-30"></div>
             <div className="relative p-8 text-center">
               <div className="text-7xl mb-4 animate-bounce">👟👟</div>
-              <h3 className="text-4xl font-fredoka font-bold text-pink-600 mb-3 drop-shadow-md">
+              <h3 className="text-4xl font-luckiest-guy text-pink-600 mb-3 drop-shadow-md">
                 Pairs of Shoes
               </h3>
               <p className="text-gray-700 mb-6 text-lg font-medium">
                 Traditional matching pairs of children's shoes at great prices!
               </p>
-              <div className="inline-block px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-pink-600 group-hover:to-purple-600 transition shadow-lg">
+              <div className="inline-block px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full font-quicksand font-bold text-lg group-hover:from-pink-600 group-hover:to-purple-600 transition shadow-lg">
                 Browse Pairs →
               </div>
             </div>
@@ -91,28 +91,28 @@ export default function Home() {
 
         {/* Info Section */}
         <div className="mt-16 max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-yellow-300">
-          <h3 className="text-3xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-6">How It Works</h3>
+          <h3 className="text-3xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-6">How It Works</h3>
           <div className="space-y-4 text-gray-700">
             <div className="flex items-start gap-4 p-3 bg-cyan-50 rounded-2xl">
               <span className="text-3xl">1️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-cyan-600">Choose:</strong> Select whether you're looking for single shoes or pairs</p>
+              <p className="text-lg"><strong className="font-quicksand text-cyan-600">Choose:</strong> Select whether you're looking for single shoes or pairs</p>
             </div>
             <div className="flex items-start gap-4 p-3 bg-pink-50 rounded-2xl">
               <span className="text-3xl">2️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-pink-600">Buy or Sell:</strong> Browse available shoes or list your own</p>
+              <p className="text-lg"><strong className="font-quicksand text-pink-600">Buy or Sell:</strong> Browse available shoes or list your own</p>
             </div>
             <div className="flex items-start gap-4 p-3 bg-purple-50 rounded-2xl">
               <span className="text-3xl">3️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-purple-600">Connect:</strong> Make offers, negotiate, and complete the sale</p>
+              <p className="text-lg"><strong className="font-quicksand text-purple-600">Connect:</strong> Make offers, negotiate, and complete the sale</p>
             </div>
             <div className="flex items-start gap-4 p-3 bg-yellow-50 rounded-2xl">
               <span className="text-3xl">4️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-yellow-600">Ship & Rate:</strong> Sellers ship, buyers receive and rate</p>
+              <p className="text-lg"><strong className="font-quicksand text-yellow-600">Ship & Rate:</strong> Sellers ship, buyers receive and rate</p>
             </div>
           </div>
           <div className="mt-6 p-4 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl border-2 border-yellow-400">
             <p className="text-base text-gray-800 font-medium">
-              <strong className="font-fredoka text-orange-600">Service Fee:</strong> A $0.99 fee is added to each purchase to keep Shoe Shoe running smoothly! 🎈
+              <strong className="font-quicksand text-orange-600">Service Fee:</strong> A $0.99 fee is added to each purchase to keep Shoe Shoe running smoothly! 🎈
             </p>
           </div>
         </div>

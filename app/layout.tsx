@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Fredoka, Quicksand } from "next/font/google";
+import { Luckiest_Guy, Quicksand } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const fredoka = Fredoka({
-  variable: "--font-fredoka",
+const luckiestGuy = Luckiest_Guy({
+  variable: "--font-luckiest-guy",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400"],
 });
 
 const quicksand = Quicksand({
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fredoka.variable} ${quicksand.variable} antialiased font-quicksand`}
+        className={`${luckiestGuy.variable} ${quicksand.variable} antialiased font-quicksand`}
       >
         <Providers>{children}</Providers>
       </body>

@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        fredoka: ["var(--font-fredoka)"],
+        "luckiest-guy": ["var(--font-luckiest-guy)"],
         quicksand: ["var(--font-quicksand)"],
       },
       colors: {
