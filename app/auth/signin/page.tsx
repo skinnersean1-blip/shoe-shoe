@@ -78,7 +78,7 @@ function SignInContent() {
     <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border-4 border-purple-300">
         <div className="text-center mb-8">
-          <Link href="/" className="text-4xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
+          <Link href="/" className="text-4xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
             Shoe Shoe
           </Link>
           <h2 className="text-2xl font-bold text-gray-800 mt-4">

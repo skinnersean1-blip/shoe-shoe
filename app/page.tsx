@@ -10,7 +10,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
       {/* Header */}
       <header className="p-6 flex justify-between items-center">
-        <h1 className="text-4xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
+        <h1 className="text-4xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
           Shoe Shoe
         </h1>
         <div className="flex gap-4">
@@ -38,7 +38,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-6xl md:text-7xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
+          <h2 className="text-6xl md:text-7xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
             Shoe Shoe
           </h2>
           <p className="text-2xl text-gray-700 max-w-2xl mx-auto font-medium">
@@ -56,7 +56,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-200 to-blue-200 opacity-30"></div>
             <div className="relative p-8 text-center">
               <div className="text-7xl mb-4 animate-bounce">👟</div>
-              <h3 className="text-4xl font-luckiest-guy text-cyan-600 mb-3 drop-shadow-md">
+              <h3 className="text-4xl font-bungee text-cyan-600 mb-3 drop-shadow-md">
                 Single Shoes
               </h3>
               <p className="text-gray-700 mb-6 text-lg font-medium">
@@ -76,7 +76,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-pink-200 to-purple-200 opacity-30"></div>
             <div className="relative p-8 text-center">
               <div className="text-7xl mb-4 animate-bounce">👟👟</div>
-              <h3 className="text-4xl font-luckiest-guy text-pink-600 mb-3 drop-shadow-md">
+              <h3 className="text-4xl font-bungee text-pink-600 mb-3 drop-shadow-md">
                 Pairs of Shoes
               </h3>
               <p className="text-gray-700 mb-6 text-lg font-medium">
@@ -91,7 +91,7 @@ export default function Home() {
 
         {/* Info Section */}
         <div className="mt-16 max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-yellow-300">
-          <h3 className="text-3xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-6">How It Works</h3>
+          <h3 className="text-3xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-6">How It Works</h3>
           <div className="space-y-4 text-gray-700">
             <div className="flex items-start gap-4 p-3 bg-cyan-50 rounded-2xl">
               <span className="text-3xl">1️⃣</span>

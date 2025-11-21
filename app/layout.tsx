@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Luckiest_Guy, Quicksand } from "next/font/google";
+import { Bungee, Quicksand } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const luckiestGuy = Luckiest_Guy({
-  variable: "--font-luckiest-guy",
+const bungee = Bungee({
+  variable: "--font-bungee",
   subsets: ["latin"],
   weight: ["400"],
 });
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${luckiestGuy.variable} ${quicksand.variable} antialiased font-quicksand`}
+        className={`${bungee.variable} ${quicksand.variable} antialiased font-quicksand`}
       >
         <Providers>{children}</Providers>
       </body>

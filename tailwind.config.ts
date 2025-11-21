@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        "luckiest-guy": ["var(--font-luckiest-guy)"],
+        "bungee": ["var(--font-bungee)"],
         quicksand: ["var(--font-quicksand)"],
       },
       colors: {

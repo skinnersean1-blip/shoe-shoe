@@ -29,7 +29,7 @@ function SellContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-3xl shadow-xl text-center border-4 border-pink-300">
-          <h2 className="text-2xl font-luckiest-guy text-gray-800 mb-4">Invalid Selection</h2>
+          <h2 className="text-2xl font-bungee text-gray-800 mb-4">Invalid Selection</h2>
           <p className="text-gray-600 mb-6">Please select a shoe type from the home page.</p>
           <Link href="/" className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full hover:from-pink-600 hover:to-purple-600 transition shadow-lg font-quicksand font-semibold">
             Go Home
@@ -116,7 +116,7 @@ function SellContent() {
     <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
       {/* Header */}
       <header className="p-6">
-        <Link href={`/portal?type=${type}`} className="text-4xl font-luckiest-guy text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 transition drop-shadow-lg">
+        <Link href={`/portal?type=${type}`} className="text-4xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 transition drop-shadow-lg">
           ← Back
         </Link>
       </header>
