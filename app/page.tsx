@@ -38,7 +38,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-6xl md:text-7xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
+          <h2 className="text-6xl md:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{fontFamily: 'Comic Sans MS, cursive', textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
             Shoe Shoe
           </h2>
           <p className="text-2xl text-gray-700 max-w-2xl mx-auto font-medium">
