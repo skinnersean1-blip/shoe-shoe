@@ -10,9 +10,13 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
       {/* Header */}
       <header className="p-6 flex justify-between items-center">
-        <h1 className="text-4xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
-          Shoe Shoe
-        </h1>
+        <div>
+          <div className="text-6xl font-bungee text-red-600 mb-2">TEST BUNGEE</div>
+          <div className="text-6xl font-luckiest-guy text-blue-600 mb-2">TEST LUCKIEST</div>
+          <h1 className="text-4xl font-bungee text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
+            Shoe Shoe
+          </h1>
+        </div>
         <div className="flex gap-4">
           {session ? (
             <div className="flex items-center gap-4">
