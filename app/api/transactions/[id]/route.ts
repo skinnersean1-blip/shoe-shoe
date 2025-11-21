@@ -12,11 +12,12 @@ const updateSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const transaction = await prisma.transaction.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         shoe: true,
         seller: {
@@ -55,15 +56,16 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
     const body = await request.json()
     const validatedData = updateSchema.parse(body)
+    const { id } = await params
 
     const transaction = await prisma.transaction.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { shoe: true },
     })
 
@@ -84,7 +86,7 @@ export async function PATCH(
         }
 
         updatedTransaction = await prisma.transaction.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: "ACCEPTED",
           },
@@ -108,7 +110,7 @@ export async function PATCH(
         }
 
         updatedTransaction = await prisma.transaction.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: "CANCELLED",
           },
@@ -127,7 +129,7 @@ export async function PATCH(
         }
 
         updatedTransaction = await prisma.transaction.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: "SHIPPED",
             trackingNumber: validatedData.trackingNumber,
@@ -162,7 +164,7 @@ export async function PATCH(
         }
 
         updatedTransaction = await prisma.transaction.update({
-          where: { id: params.id },
+          where: { id },
           data: {
             status: "DELIVERED",
             deliveredAt: new Date(),
