@@ -9,8 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        "bungee": ["var(--font-bungee)"],
-        quicksand: ["var(--font-quicksand)"],
+        "bungee": ["Impact", "Arial Black", "sans-serif"],
+        "quicksand": ["Verdana", "Trebuchet MS", "sans-serif"],
       },
       colors: {
         background: "var(--background)",
