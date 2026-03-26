@@ -1,4 +1,4 @@
-// Prisma schema for Shoe Shoe Marketplace
+// Prisma schema for The Urban Playground (Shoe Shoe Marketplace)
 
 generator client {
   provider = "prisma-client-js"
@@ -6,32 +6,10 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
-// User model for authentication and profiles
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?   // For email/password auth
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+// ─── Auth models (NextAuth) ────────────────────────────────────────────────
 
-  // Relations
-  accounts      Account[]
-  sessions      Session[]
-  shoesListed   Shoe[]    @relation("SellerShoes")
-  purchases     Transaction[] @relation("BuyerTransactions")
-  sales         Transaction[] @relation("SellerTransactions")
-  ratingsGiven  Rating[]  @relation("RatingsGiven")
-  ratingsReceived Rating[] @relation("RatingsReceived")
-  notifications Notification[]
-}
-
-// NextAuth Account model
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -51,7 +29,6 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-// NextAuth Session model
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -60,7 +37,6 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// NextAuth VerificationToken model
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -69,32 +45,79 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Shoe listing model
-model Shoe {
-  id          String   @id @default(cuid())
-  sellerId    String
-  seller      User     @relation("SellerShoes", fields: [sellerId], references: [id], onDelete: Cascade)
+// ─── User ─────────────────────────────────────────────────────────────────
 
-  // Shoe details
-  type        ShoeType // SINGLE or PAIR
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  username      String?   @unique  // e.g. @hypebeast_99
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  bio           String?   // Profile bio / tagline
+  creditBalance Int       @default(0)   // SS Points
+  role          UserRole  @default(USER)
+  trustScore    Float     @default(5.0) // 0-5 trust rating
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  // App relations
+  shoesListed        Shoe[]              @relation("SellerShoes")
+  purchases          Transaction[]       @relation("BuyerTransactions")
+  sales              Transaction[]       @relation("SellerTransactions")
+  ratingsGiven       Rating[]            @relation("RatingsGiven")
+  ratingsReceived    Rating[]            @relation("RatingsReceived")
+  notifications      Notification[]
+  creditTransactions CreditTransaction[]
+  sentMessages       Message[]           @relation("SentMessages")
+  receivedMessages   Message[]           @relation("ReceivedMessages")
+  disputes           Dispute[]           @relation("DisputeUser")
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+// ─── Shoe listing ──────────────────────────────────────────────────────────
+
+model Shoe {
+  id          String @id @default(cuid())
+  sellerId    String
+  seller      User   @relation("SellerShoes", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  // Core details
   brand       String
   year        Int
   color       String
-  size        String   // e.g., "5", "6.5", "7-8" for pairs
+  size        String        // e.g. "5C", "7Y", "4C-7Y" for pairs
+  ageGroup    AgeGroup?     // BABY / TODDLER / YOUTH
   condition   Condition
-  description String   // Max 500 chars (validated in app)
+  description String
   price       Float
+  images      String        // JSON array of base64 or URLs
 
-  // Image URLs (stored as JSON array or separate model)
-  images      String   // JSON array of image URLs
+  // Listing type
+  type        ShoeType      // SINGLE or PAIR
+  listingType ListingType   @default(SELL) // SELL / TRADE / DONATE
+  creditValue Int           @default(0)    // Credits earned/required for trade
 
-  // Status
-  status      ShoeStatus @default(AVAILABLE)
+  // Status & moderation
+  status           ShoeStatus        @default(AVAILABLE)
+  moderationStatus ModerationStatus  @default(PENDING_REVIEW)
+  moderatedBy      String?           // Admin user ID who reviewed
+  moderatedAt      DateTime?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations
   transactions Transaction[]
 }
 
@@ -103,10 +126,16 @@ enum ShoeType {
   PAIR
 }
 
+enum AgeGroup {
+  BABY    // 0C-4C
+  TODDLER // 5C-10C
+  YOUTH   // 11C-7Y
+}
+
 enum Condition {
-  NEW
-  LIKE_NEW
-  GOOD
+  NEW       // Deadstock / Brand New
+  LIKE_NEW  // VNDS / Lightly Worn
+  GOOD      // Well-Loved
   FAIR
   WORN
 }
@@ -117,75 +146,111 @@ enum ShoeStatus {
   SOLD
 }
 
-// Transaction model for sales
+enum ListingType {
+  SELL
+  TRADE
+  DONATE
+}
+
+enum ModerationStatus {
+  PENDING_REVIEW
+  APPROVED
+  FLAGGED
+  REJECTED
+}
+
+// ─── Transaction ───────────────────────────────────────────────────────────
+
 model Transaction {
-  id              String    @id @default(cuid())
-  shoeId          String
-  shoe            Shoe      @relation(fields: [shoeId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  shoeId   String
+  shoe     Shoe   @relation(fields: [shoeId], references: [id], onDelete: Cascade)
 
-  buyerId         String?   // Nullable for guest buyers initially
-  buyer           User?     @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  buyerId  String?
+  buyer    User?   @relation("BuyerTransactions", fields: [buyerId], references: [id])
 
-  sellerId        String
-  seller          User      @relation("SellerTransactions", fields: [sellerId], references: [id])
+  sellerId String
+  seller   User    @relation("SellerTransactions", fields: [sellerId], references: [id])
 
   // Transaction details
-  status          TransactionStatus @default(PENDING)
-  offerPrice      Float?    // For counteroffers
-  finalPrice      Float
-  serviceFee      Float     @default(0.99)
+  status       TransactionStatus @default(PENDING)
+  type         TransactionType   @default(CASH) // CASH or TRADE
+  offerPrice   Float?
+  finalPrice   Float
+  serviceFee   Float             @default(0.99)
+  creditsUsed  Int               @default(0)    // For trade transactions
 
-  // Buyer info (for guest buyers)
-  buyerEmail      String?
-  buyerName       String?
+  // Guest buyer info
+  buyerEmail String?
+  buyerName  String?
 
   // Shipping
   shippingMethod  String?
   trackingNumber  String?
+  trackingStatus  ShippingStatus?
   shippedAt       DateTime?
   deliveredAt     DateTime?
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations
-  ratings         Rating[]
-  notifications   Notification[]
+  ratings       Rating[]
+  notifications Notification[]
+  messages      Message[]
+  disputes      Dispute[]
 }
 
 enum TransactionStatus {
-  PENDING          // Initial buyer interest
-  COUNTEROFFER     // Seller made counteroffer
-  ACCEPTED         // Buyer accepted
-  PAYMENT_PENDING  // Awaiting payment
-  PAID             // Payment received
-  SHIPPED          // Seller confirmed shipment
-  DELIVERED        // Buyer confirmed delivery
-  COMPLETED        // Transaction complete with rating
-  CANCELLED        // Transaction cancelled
+  PENDING           // Initial buyer interest
+  COUNTEROFFER      // Seller made counteroffer
+  ACCEPTED          // Offer accepted
+  PAYMENT_PENDING   // Awaiting payment
+  PAID              // Payment received
+  LABEL_PRINTED     // Shipping label generated
+  DROPPED_OFF       // Package with carrier
+  SHIPPED           // In transit
+  DELIVERED         // Buyer confirmed delivery
+  COMPLETED         // Transaction complete with rating
+  CANCELLED         // Cancelled
+  DISPUTED          // Under dispute resolution
 }
 
-// Rating model
+enum TransactionType {
+  CASH
+  TRADE
+  DONATION
+}
+
+enum ShippingStatus {
+  LABEL_PRINTED
+  DROPPED_OFF
+  IN_TRANSIT
+  DELIVERED
+}
+
+// ─── Rating ────────────────────────────────────────────────────────────────
+
 model Rating {
   id            String      @id @default(cuid())
   transactionId String
   transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 
-  raterId       String
-  rater         User        @relation("RatingsGiven", fields: [raterId], references: [id])
+  raterId     String
+  rater       User   @relation("RatingsGiven", fields: [raterId], references: [id])
 
-  ratedUserId   String
-  ratedUser     User        @relation("RatingsReceived", fields: [ratedUserId], references: [id])
+  ratedUserId String
+  ratedUser   User   @relation("RatingsReceived", fields: [ratedUserId], references: [id])
 
-  rating        Int         // 1-5 stars
-  comment       String?
+  rating  Int     // 1-5 stars
+  comment String?
 
-  createdAt     DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([transactionId, raterId])
 }
 
-// Notification model
+// ─── Notification ──────────────────────────────────────────────────────────
+
 model Notification {
   id            String      @id @default(cuid())
   userId        String
@@ -194,12 +259,12 @@ model Notification {
   transactionId String?
   transaction   Transaction? @relation(fields: [transactionId], references: [id])
 
-  type          NotificationType
-  title         String
-  message       String
-  read          Boolean     @default(false)
+  type    NotificationType
+  title   String
+  message String
+  read    Boolean          @default(false)
 
-  createdAt     DateTime    @default(now())
+  createdAt DateTime @default(now())
 }
 
 enum NotificationType {
@@ -207,7 +272,94 @@ enum NotificationType {
   COUNTEROFFER_RECEIVED
   OFFER_ACCEPTED
   PAYMENT_RECEIVED
+  LABEL_READY
   SHIPMENT_CONFIRMED
   DELIVERY_CONFIRMED
   RATING_RECEIVED
+  TRADE_OFFER_RECEIVED
+  TRADE_COMPLETED
+  NEW_DROP
+  MODERATION_APPROVED
+  MODERATION_FLAGGED
+}
+
+// ─── Credits ───────────────────────────────────────────────────────────────
+
+model CreditTransaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount      Int    // positive = earned, negative = spent
+  reason      String // Human-readable description
+  shoeId      String?
+  transactionId String?
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Messaging ─────────────────────────────────────────────────────────────
+
+model Message {
+  id         String @id @default(cuid())
+  senderId   String
+  sender     User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  content       String
+  read          Boolean      @default(false)
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Disputes ──────────────────────────────────────────────────────────────
+
+model Dispute {
+  id            String   @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  reporterId String
+  reporter   User   @relation("DisputeUser", fields: [reporterId], references: [id])
+
+  reason      DisputeReason
+  description String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?       // Admin notes on resolution
+  resolvedBy  String?       // Admin user ID
+  resolvedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DisputeReason {
+  ITEM_NOT_AS_DESCRIBED
+  PAYMENT_FAILED
+  COUNTERFEIT_SUSPECTED
+  NOT_RECEIVED
+  SELLER_UNRESPONSIVE
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_SELLER
+  RESOLVED_BUYER
+  RESOLVED_SPLIT
+}
+
+// ─── System Config (live ops) ──────────────────────────────────────────────
+
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  updatedAt DateTime  @updatedAt
+  updatedBy String?   // Admin user ID
 }

@@ -15,179 +15,198 @@ interface Shoe {
   description: string
   price: number
   images: string
-  seller: {
-    id: string
-    name: string | null
-    email: string | null
-  }
+  seller: { id: string; name: string | null; email: string | null }
+}
+
+const AGE_GROUPS = [
+  { key: "baby",    label: "BABY",    range: "0C–4C",  icon: "child_care" },
+  { key: "toddler", label: "TODDLER", range: "5C–10C", icon: "toys" },
+  { key: "youth",   label: "YOUTH",   range: "11C–7Y", icon: "directions_run" },
+] as const
+
+type AgeGroup = typeof AGE_GROUPS[number]["key"] | null
+
+const CONDITIONS = [
+  { key: "",        label: "All" },
+  { key: "NEW",     label: "Brand New" },
+  { key: "LIKE_NEW",label: "Lightly Worn" },
+  { key: "GOOD",    label: "Well-Loved" },
+]
+
+const BADGE_MAP: Record<string, { label: string; color: string }> = {
+  NEW:      { label: "NEW DROP",  color: "bg-primary text-white" },
+  LIKE_NEW: { label: "VNDS",      color: "bg-secondary text-white" },
+  GOOD:     { label: "FIRE",      color: "bg-tertiary text-white" },
+  FAIR:     { label: "HEAT",      color: "bg-tertiary-container text-on-surface" },
+  WORN:     { label: "WELL-LOVED",color: "bg-surface-highest text-on-surface-variant" },
 }
 
 function BuyContent() {
   const searchParams = useSearchParams()
-  const type = searchParams.get("type") as "SINGLE" | "PAIR" | null
+  const type = (searchParams.get("type") ?? "PAIR") as "SINGLE" | "PAIR"
 
   const [shoes, setShoes] = useState<Shoe[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>(null)
+  const [condition, setCondition] = useState("")
 
   useEffect(() => {
-    const fetchShoes = async () => {
-      try {
-        const response = await fetch(`/api/shoes?type=${type}&status=AVAILABLE`)
-        if (!response.ok) throw new Error("Failed to fetch shoes")
-        const data = await response.json()
-        setShoes(data)
-      } catch (err) {
-        setError("Failed to load shoes")
-        console.error(err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    if (type) {
-      fetchShoes()
-    }
+    setIsLoading(true)
+    fetch(`/api/shoes?type=${type}&status=AVAILABLE`)
+      .then((r) => r.json())
+      .then((data) => setShoes(Array.isArray(data) ? data : []))
+      .catch(() => setShoes([]))
+      .finally(() => setIsLoading(false))
   }, [type])
 
-  if (!type || (type !== "SINGLE" && type !== "PAIR")) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Invalid Selection</h2>
-          <p className="text-gray-600 mb-6">Please select a shoe type from the home page.</p>
-          <Link href="/" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-            Go Home
+  const getFirstImage = (images: string) => {
+    try {
+      const arr = JSON.parse(images)
+      return Array.isArray(arr) && arr[0] ? arr[0] : null
+    } catch { return null }
+  }
+
+  const filtered = shoes.filter((s) => {
+    if (condition && s.condition !== condition) return false
+    return true
+  })
+
+  return (
+    <div className="min-h-screen bg-surface pb-24">
+
+      {/* ── Header ── */}
+      <header className="glass-nav sticky top-0 z-50 px-4 pt-3 pb-2">
+        <div className="flex items-center gap-3 mb-3">
+          <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+            <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>arrow_back</span>
+          </Link>
+          <div className="flex-1 flex items-center gap-2 bg-surface-low rounded-full px-4 py-2">
+            <span className="material-icons text-on-surface-variant" style={{ fontSize: 18 }}>search</span>
+            <span className="font-manrope text-sm text-on-surface-variant">Search drops…</span>
+          </div>
+        </div>
+
+        {/* Age group tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {AGE_GROUPS.map((ag) => (
+            <button
+              key={ag.key}
+              onClick={() => setAgeGroup(ageGroup === ag.key ? null : ag.key)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-jakarta font-semibold text-xs transition-all ${
+                ageGroup === ag.key
+                  ? "gradient-primary text-white shadow-pink-glow"
+                  : "bg-surface-low text-on-surface-variant"
+              }`}
+            >
+              <span className="material-icons" style={{ fontSize: 14 }}>{ag.icon}</span>
+              {ag.label} {ag.range}
+            </button>
+          ))}
+          <button className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-low text-on-surface-variant font-jakarta font-semibold text-xs">
+            <span className="material-icons" style={{ fontSize: 14 }}>casino</span>
+            SURPRISE ME
+          </button>
+        </div>
+      </header>
+
+      {/* ── Condition Filter ── */}
+      <div className="px-4 pt-3 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
+        {CONDITIONS.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => setCondition(c.key)}
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full font-manrope font-semibold text-xs transition-all ${
+              condition === c.key
+                ? "bg-on-surface text-surface"
+                : "bg-surface-low text-on-surface-variant"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Count ── */}
+      <div className="px-4 py-2">
+        <p className="font-jakarta font-bold text-sm text-on-surface-variant">
+          Showing {filtered.length} Fire Drop{filtered.length !== 1 ? "s" : ""}
+        </p>
+      </div>
+
+      {/* ── Type Toggle ── */}
+      <div className="px-4 mb-3">
+        <div className="flex bg-surface-high rounded-full p-1 gap-1 w-fit">
+          <Link
+            href="/buy?type=PAIR"
+            className={`px-5 py-2 rounded-full font-jakarta font-semibold text-sm transition-all ${
+              type === "PAIR" ? "bg-primary text-white shadow-ambient" : "text-on-surface-variant"
+            }`}
+          >
+            Pairs
+          </Link>
+          <Link
+            href="/buy?type=SINGLE"
+            className={`px-5 py-2 rounded-full font-jakarta font-semibold text-sm transition-all ${
+              type === "SINGLE" ? "bg-primary text-white shadow-ambient" : "text-on-surface-variant"
+            }`}
+          >
+            Singles
           </Link>
         </div>
       </div>
-    )
-  }
 
-  const typeLabel = type === "SINGLE" ? "Single Shoes" : "Pairs of Shoes"
-  const typeEmoji = type === "SINGLE" ? "👟" : "👟👟"
-
-  const getConditionColor = (condition: string) => {
-    switch (condition) {
-      case "NEW":
-        return "bg-green-100 text-green-800"
-      case "LIKE_NEW":
-        return "bg-blue-100 text-blue-800"
-      case "GOOD":
-        return "bg-yellow-100 text-yellow-800"
-      case "FAIR":
-        return "bg-orange-100 text-orange-800"
-      case "WORN":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const formatCondition = (condition: string) => {
-    return condition.split("_").map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join(" ")
-  }
-
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Header */}
-      <header className="p-6">
-        <Link href={`/portal?type=${type}`} className="text-3xl font-bold text-purple-600 hover:text-purple-700 transition">
-          ← Back
-        </Link>
-      </header>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <div className="text-6xl mb-4">{typeEmoji}</div>
-          <h1 className="text-5xl font-bold text-gray-800 mb-4">Browse {typeLabel}</h1>
-          <p className="text-xl text-gray-600">
-            Click on any shoe to view details and make an offer
-          </p>
-        </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
-            <p className="mt-4 text-gray-600">Loading shoes...</p>
+      {/* ── Grid ── */}
+      <div className="px-4">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="font-manrope text-on-surface-variant text-sm">Loading drops…</p>
           </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="max-w-2xl mx-auto bg-red-50 border border-red-200 rounded-lg p-6 text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && shoes.length === 0 && (
-          <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-12 text-center">
-            <div className="text-6xl mb-4">😢</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">No Shoes Available</h3>
-            <p className="text-gray-600 mb-6">
-              There are no {typeLabel.toLowerCase()} for sale right now. Check back later!
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-20 h-20 rounded-5xl bg-surface-low flex items-center justify-center">
+              <span className="material-icons text-outline-variant" style={{ fontSize: 40 }}>inventory</span>
+            </div>
+            <p className="font-jakarta font-bold text-lg text-on-surface">No drops yet</p>
+            <p className="font-manrope text-sm text-on-surface-variant text-center">
+              Be the first to drop some heat.
             </p>
             <Link
               href={`/sell?type=${type}`}
-              className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              className="px-6 py-3 rounded-full gradient-primary text-white font-jakarta font-bold shadow-pink-glow"
             >
-              Be the first to sell
+              Post a Drop
             </Link>
           </div>
-        )}
-
-        {/* Shoes Grid */}
-        {!isLoading && !error && shoes.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {shoes.map((shoe) => {
-              const imageArray = JSON.parse(shoe.images)
-              const firstImage = imageArray[0]
-
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {filtered.map((shoe) => {
+              const img = getFirstImage(shoe.images)
+              const badge = BADGE_MAP[shoe.condition]
               return (
                 <Link
                   key={shoe.id}
                   href={`/shoe/${shoe.id}`}
-                  className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
+                  className="group bg-surface-lowest rounded-4xl overflow-hidden shadow-ambient hover:scale-[1.02] transition-transform"
                 >
-                  {/* Image */}
-                  <div className="aspect-square relative overflow-hidden bg-gray-100">
-                    <img
-                      src={firstImage}
-                      alt={`${shoe.brand} ${shoe.color}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${getConditionColor(shoe.condition)}`}>
-                      {formatCondition(shoe.condition)}
-                    </div>
+                  <div className="aspect-square relative bg-surface-low">
+                    {img ? (
+                      <img src={img} alt={shoe.brand} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-icons text-outline-variant" style={{ fontSize: 48 }}>image</span>
+                      </div>
+                    )}
+                    {badge && (
+                      <span className={`absolute top-2 left-2 label-md px-2 py-0.5 rounded-full sticker ${badge.color}`}>
+                        {badge.label}
+                      </span>
+                    )}
                   </div>
-
-                  {/* Details */}
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold text-gray-800 mb-1 truncate">
-                      {shoe.brand}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {shoe.color} • Size {shoe.size} • {shoe.year}
-                    </p>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                      {shoe.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-2xl font-bold text-purple-600">
-                          ${shoe.price.toFixed(2)}
-                        </p>
-                        <p className="text-xs text-gray-500">+ $0.99 service fee</p>
-                      </div>
-                      <div className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold group-hover:bg-purple-700 transition">
-                        View →
-                      </div>
-                    </div>
+                  <div className="p-3">
+                    <p className="font-jakarta font-bold text-sm text-on-surface truncate">{shoe.brand}</p>
+                    <p className="font-manrope text-xs text-on-surface-variant mb-1">Size {shoe.size}</p>
+                    <p className="font-jakarta font-extrabold text-primary">${shoe.price.toFixed(2)}</p>
                   </div>
                 </Link>
               )
@@ -195,13 +214,37 @@ function BuyContent() {
           </div>
         )}
       </div>
-    </main>
+
+      {/* ── Bottom Nav ── */}
+      <nav className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-2 flex justify-around items-center z-50">
+        <Link href="/" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>local_fire_department</span>
+          <span className="label-md">Drops</span>
+        </Link>
+        <Link href="/buy?type=PAIR" className="flex flex-col items-center gap-0.5 text-primary">
+          <span className="material-icons" style={{ fontSize: 24 }}>straighten</span>
+          <span className="label-md text-primary">Sizes</span>
+        </Link>
+        <Link href="/buy?type=PAIR" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>casino</span>
+          <span className="label-md">Random</span>
+        </Link>
+        <Link href="/notifications" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>inventory_2</span>
+          <span className="label-md">Vault</span>
+        </Link>
+      </nav>
+    </div>
   )
 }
 
 export default function Buy() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    }>
       <BuyContent />
     </Suspense>
   )

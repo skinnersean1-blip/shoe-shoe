@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import { Fredoka, Quicksand } from "next/font/google";
+import { Plus_Jakarta_Sans, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const fredoka = Fredoka({
-  variable: "--font-fredoka",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const quicksand = Quicksand({
-  variable: "--font-quicksand",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "Shoe Shoe | Children's Shoe Marketplace",
-  description: "Buy and sell children's shoes - singles or pairs!",
+  title: "The Urban Playground | Kids' Shoe Marketplace",
+  description: "The 100% kids-only marketplace. Toddlers to Teens, curated for the next generation of sneakerheads.",
 };
 
 export default function RootLayout({
@@ -27,9 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${fredoka.variable} ${quicksand.variable} antialiased font-quicksand`}
-      >
+      <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+      </head>
+      <body className={`${plusJakartaSans.variable} ${manrope.variable} antialiased font-manrope`}>
         <Providers>{children}</Providers>
       </body>
     </html>

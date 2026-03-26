@@ -1,10 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Suspense } from "react"
 
 function SignInContent() {
   const router = useRouter()
@@ -12,11 +11,7 @@ function SignInContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/"
 
   const [isSignUp, setIsSignUp] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  })
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" })
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -27,44 +22,29 @@ function SignInContent() {
 
     try {
       if (isSignUp) {
-        // Register new user
-        const response = await fetch("/api/auth/register", {
+        const res = await fetch("/api/auth/register", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         })
-
-        if (!response.ok) {
-          const data = await response.json()
-          throw new Error(data.error || "Registration failed")
+        if (!res.ok) {
+          const d = await res.json()
+          throw new Error(d.error || "Registration failed")
         }
-
-        // Auto sign in after registration
         const result = await signIn("credentials", {
           email: formData.email,
           password: formData.password,
           redirect: false,
         })
-
-        if (result?.error) {
-          throw new Error("Registration successful but sign in failed")
-        }
-
+        if (result?.error) throw new Error("Registration successful but sign in failed")
         router.push(callbackUrl)
       } else {
-        // Sign in
         const result = await signIn("credentials", {
           email: formData.email,
           password: formData.password,
           redirect: false,
         })
-
-        if (result?.error) {
-          throw new Error("Invalid email or password")
-        }
-
+        if (result?.error) throw new Error("Invalid email or password")
         router.push(callbackUrl)
       }
     } catch (err: any) {
@@ -75,109 +55,120 @@ function SignInContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border-4 border-purple-300">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
-            Shoe Shoe
-          </Link>
-          <h2 className="text-2xl font-bold text-gray-800 mt-4">
-            {isSignUp ? "Create Account" : "Welcome Back"}
-          </h2>
-          <p className="text-gray-600 mt-2">
-            {isSignUp
-              ? "Sign up to start buying and selling"
-              : "Sign in to your account"}
-          </p>
+    <div className="min-h-screen bg-surface flex flex-col">
+      {/* Hero top */}
+      <div className="gradient-primary px-6 pt-12 pb-16 relative overflow-hidden">
+        <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 mb-8">
+          <span className="material-icons text-white" style={{ fontSize: 22 }}>arrow_back</span>
+        </Link>
+
+        <div className="sticker inline-block mb-3">
+          <span className="label-md bg-white text-primary px-3 py-1 rounded-full">
+            {isSignUp ? "New Recruit" : "Welcome Back"}
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
+        <h1 className="font-jakarta font-extrabold text-3xl text-white leading-tight mb-2">
+          {isSignUp ? "Join the\nPlayground" : "Back on\nthe Court"}
+        </h1>
+        <p className="font-manrope text-white/75 text-sm">
+          {isSignUp
+            ? "Create your account and start dropping heat."
+            : "Sign in to access your drops, trades, and credits."}
+        </p>
+
+        {/* Decorative blob */}
+        <div
+          className="absolute right-[-30px] bottom-[-30px] w-48 h-48 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }}
+        />
+      </div>
+
+      {/* Form card */}
+      <div className="flex-1 px-4 -mt-8 relative z-10">
+        <div className="bg-surface-lowest rounded-5xl shadow-float p-6">
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="label-md text-on-surface-variant mb-2 block">Your name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="SneakerHead Junior"
+                  className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Name
-              </label>
+              <label className="label-md text-on-surface-variant mb-2 block">Email</label>
               <input
-                type="text"
+                type="email"
                 required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Your name"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="your@email.com"
+                className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
               />
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+            <div>
+              <label className="label-md text-on-surface-variant mb-2 block">Password</label>
+              <input
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="••••••••"
+                className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition disabled:bg-gray-400"
-          >
-            {isSubmitting ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
-          </button>
-        </form>
+            {error && (
+              <div className="p-4 bg-surface-low rounded-3xl">
+                <p className="font-manrope text-sm text-primary">{error}</p>
+              </div>
+            )}
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp)
-              setError("")
-            }}
-            className="text-purple-600 hover:underline"
-          >
-            {isSignUp
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
-          </button>
-        </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-full gradient-primary text-white font-jakarta font-extrabold shadow-pink-glow hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {isSubmitting ? "Please wait…" : isSignUp ? "Join the Squad" : "Let's Go"}
+            </button>
+          </form>
 
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-gray-600 hover:underline text-sm">
-            Continue as guest
-          </Link>
+          <div className="mt-5 text-center">
+            <button
+              onClick={() => { setIsSignUp(!isSignUp); setError("") }}
+              className="font-jakarta font-semibold text-sm text-primary"
+            >
+              {isSignUp ? "Already in the squad? Sign in" : "New here? Join the squad"}
+            </button>
+          </div>
+
+          <div className="mt-4 text-center">
+            <Link href="/" className="font-manrope text-xs text-on-surface-variant">
+              Continue as guest
+            </Link>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 
 export default function SignIn() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    }>
       <SignInContent />
     </Suspense>
   )

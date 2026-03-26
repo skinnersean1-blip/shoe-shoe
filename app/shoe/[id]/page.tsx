@@ -17,11 +17,15 @@ interface Shoe {
   price: number
   images: string
   status: string
-  seller: {
-    id: string
-    name: string | null
-    email: string | null
-  }
+  seller: { id: string; name: string | null; email: string | null }
+}
+
+const CONDITION_LABEL: Record<string, { label: string; icon: string }> = {
+  NEW:      { label: "Deadstock",    icon: "diamond" },
+  LIKE_NEW: { label: "VNDS",         icon: "sentiment_satisfied" },
+  GOOD:     { label: "Lightly Used", icon: "favorite" },
+  FAIR:     { label: "Well-Loved",   icon: "recycling" },
+  WORN:     { label: "Heavy Wear",   icon: "auto_fix_off" },
 }
 
 export default function ShoePage() {
@@ -33,63 +37,47 @@ export default function ShoePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-
-  // Purchase flow
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false)
+  const [showBuySheet, setShowBuySheet] = useState(false)
   const [offerPrice, setOfferPrice] = useState("")
   const [buyerName, setBuyerName] = useState("")
   const [buyerEmail, setBuyerEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState("")
 
   useEffect(() => {
-    const fetchShoe = async () => {
-      try {
-        const response = await fetch(`/api/shoes/${params.id}`)
-        if (!response.ok) throw new Error("Failed to fetch shoe")
-        const data = await response.json()
+    fetch(`/api/shoes/${params.id}`)
+      .then((r) => r.json())
+      .then((data) => {
         setShoe(data)
-        setOfferPrice(data.price.toString())
-      } catch (err) {
-        setError("Failed to load shoe details")
-        console.error(err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchShoe()
+        setOfferPrice(data.price?.toString() ?? "")
+      })
+      .catch(() => setError("Failed to load this drop"))
+      .finally(() => setIsLoading(false))
   }, [params.id])
-
-  const handleBuyClick = () => {
-    setShowPurchaseModal(true)
-  }
 
   const handleSubmitOffer = async () => {
     if (!shoe) return
-
-    setError("")
+    setSubmitError("")
     setIsSubmitting(true)
 
-    // Validate for guest buyers
     if (!session && (!buyerName || !buyerEmail)) {
-      setError("Please provide your name and email")
+      setSubmitError("Please provide your name and email to continue as guest.")
       setIsSubmitting(false)
       return
     }
 
     const offer = parseFloat(offerPrice)
     if (isNaN(offer) || offer <= 0) {
-      setError("Please enter a valid offer price")
+      setSubmitError("Please enter a valid price.")
       setIsSubmitting(false)
       return
     }
 
     try {
-      const response = await fetch("/api/transactions", {
+      const res = await fetch("/api/transactions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shoeId: shoe.id,
           offerPrice: offer !== shoe.price ? offer : undefined,
@@ -97,17 +85,14 @@ export default function ShoePage() {
           buyerEmail: !session ? buyerEmail : undefined,
         }),
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to create transaction")
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || "Failed to submit")
       }
-
-      const transaction = await response.json()
-      router.push(`/transaction/${transaction.id}`)
+      const tx = await res.json()
+      router.push(`/transaction/${tx.id}`)
     } catch (err: any) {
-      setError(err.message || "Failed to submit offer")
-      console.error(err)
+      setSubmitError(err.message || "Something went wrong")
     } finally {
       setIsSubmitting(false)
     }
@@ -115,243 +100,297 @@ export default function ShoePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
       </div>
     )
   }
 
   if (error || !shoe) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Error</h2>
-          <p className="text-gray-600 mb-6">{error || "Shoe not found"}</p>
-          <Link href="/" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-            Go Home
-          </Link>
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4 px-4">
+        <div className="w-20 h-20 rounded-5xl bg-surface-low flex items-center justify-center">
+          <span className="material-icons text-outline-variant" style={{ fontSize: 40 }}>search_off</span>
         </div>
+        <p className="font-jakarta font-bold text-xl text-on-surface">Drop not found</p>
+        <Link href="/" className="px-6 py-3 rounded-full gradient-primary text-white font-jakarta font-bold shadow-pink-glow">
+          Back to Drops
+        </Link>
       </div>
     )
   }
 
-  const images = JSON.parse(shoe.images)
-  const serviceFee = 0.99
-  const totalPrice = (parseFloat(offerPrice) || shoe.price) + serviceFee
-
-  const getConditionColor = (condition: string) => {
-    switch (condition) {
-      case "NEW":
-        return "bg-green-100 text-green-800"
-      case "LIKE_NEW":
-        return "bg-blue-100 text-blue-800"
-      case "GOOD":
-        return "bg-yellow-100 text-yellow-800"
-      case "FAIR":
-        return "bg-orange-100 text-orange-800"
-      case "WORN":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const formatCondition = (condition: string) => {
-    return condition.split("_").map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join(" ")
-  }
-
+  const images: string[] = (() => { try { return JSON.parse(shoe.images) } catch { return [] } })()
+  const condInfo = CONDITION_LABEL[shoe.condition] ?? { label: shoe.condition, icon: "label" }
   const isSeller = session?.user?.id === shoe.seller.id
+  const isAvailable = shoe.status === "AVAILABLE"
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Header */}
-      <header className="p-6">
-        <Link href={`/buy?type=${shoe.type}`} className="text-3xl font-bold text-purple-600 hover:text-purple-700 transition">
-          ← Back to Browse
+    <div className="min-h-screen bg-surface pb-32">
+
+      {/* ── Header ── */}
+      <header className="glass-nav sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <Link href={`/buy?type=${shoe.type}`} className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+          <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>arrow_back</span>
         </Link>
+        <button
+          onClick={() => setIsFavorited(!isFavorited)}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low"
+        >
+          <span className={`material-icons ${isFavorited ? "text-primary" : "text-on-surface-variant"}`} style={{ fontSize: 22 }}>
+            {isFavorited ? "favorite" : "favorite_border"}
+          </span>
+        </button>
       </header>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Image Gallery */}
-            <div className="p-8">
-              <div className="aspect-square relative overflow-hidden bg-gray-100 rounded-xl mb-4">
-                <img
-                  src={images[currentImageIndex]}
-                  alt={`${shoe.brand} ${shoe.color}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {images.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
-                  {images.map((img: string, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
-                      className={`aspect-square rounded-lg overflow-hidden border-2 ${
-                        currentImageIndex === idx ? "border-purple-600" : "border-transparent"
-                      }`}
-                    >
-                      <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Details */}
-            <div className="p-8">
-              <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 ${getConditionColor(shoe.condition)}`}>
-                {formatCondition(shoe.condition)}
-              </div>
-
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">{shoe.brand}</h1>
-              <p className="text-xl text-gray-600 mb-6">
-                {shoe.color} • Size {shoe.size} • {shoe.year}
-              </p>
-
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
-                <p className="text-gray-600">{shoe.description}</p>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Seller</h3>
-                <p className="text-gray-600">{shoe.seller.name || shoe.seller.email}</p>
-              </div>
-
-              <div className="border-t pt-6 mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-600">Asking Price:</span>
-                  <span className="text-3xl font-bold text-purple-600">${shoe.price.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>Service Fee:</span>
-                  <span>$0.99</span>
-                </div>
-              </div>
-
-              {shoe.status === "AVAILABLE" && !isSeller && (
-                <button
-                  onClick={handleBuyClick}
-                  className="w-full py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition text-lg"
-                >
-                  Buy or Make Offer
-                </button>
-              )}
-
-              {shoe.status !== "AVAILABLE" && (
-                <div className="w-full py-4 bg-gray-200 text-gray-600 rounded-lg font-semibold text-center text-lg">
-                  {shoe.status === "SOLD" ? "Sold" : "Pending Sale"}
-                </div>
-              )}
-
-              {isSeller && (
-                <div className="w-full py-4 bg-blue-100 text-blue-800 rounded-lg font-semibold text-center text-lg">
-                  This is your listing
-                </div>
-              )}
-            </div>
+      {/* ── Image Gallery ── */}
+      <div className="relative bg-surface-low aspect-square overflow-hidden">
+        {images[currentImageIndex] ? (
+          <img
+            src={images[currentImageIndex]}
+            alt={shoe.brand}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="material-icons text-outline-variant" style={{ fontSize: 80 }}>image</span>
           </div>
+        )}
+
+        {/* Condition badge overlapping image */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 flex items-end justify-between">
+          <span className="flex items-center gap-1.5 bg-surface-lowest/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-float">
+            <span className="material-icons text-secondary" style={{ fontSize: 14 }}>verified</span>
+            <span className="font-jakarta font-bold text-xs text-on-surface">CERTIFIED {shoe.type}</span>
+          </span>
+          {images.length > 1 && (
+            <div className="flex gap-1">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentImageIndex(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${i === currentImageIndex ? "bg-white w-4" : "bg-white/50"}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Purchase Modal */}
-      {showPurchaseModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Complete Purchase</h2>
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
+          {images.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentImageIndex(i)}
+              className={`flex-shrink-0 w-16 h-16 rounded-2xl overflow-hidden transition-all ${
+                i === currentImageIndex ? "ring-2 ring-primary" : "opacity-60"
+              }`}
+            >
+              <img src={img} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Details ── */}
+      <div className="px-4 pt-4 space-y-4">
+
+        {/* Title + price */}
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="label-md text-on-surface-variant mb-1">Limited Drop / Kids Series</p>
+              <h1 className="font-jakarta font-extrabold text-2xl text-on-surface leading-tight">{shoe.brand}</h1>
+              <p className="font-manrope text-sm text-on-surface-variant mt-1">{shoe.color} · Size {shoe.size} · {shoe.year}</p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="font-jakarta font-extrabold text-2xl text-primary">${shoe.price.toFixed(2)}</p>
+              <div className="flex items-center gap-1 justify-end mt-1">
+                <span className="material-icons text-tertiary" style={{ fontSize: 14 }}>swap_horiz</span>
+                <span className="font-manrope text-xs text-on-surface-variant">Open for Trade</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Rating placeholder */}
+          <div className="flex items-center gap-2 mt-2">
+            <span className="material-icons text-tertiary" style={{ fontSize: 16 }}>star</span>
+            <span className="font-jakarta font-bold text-sm text-on-surface">4.9</span>
+            <span className="font-manrope text-xs text-on-surface-variant">(124 reviews)</span>
+          </div>
+        </div>
+
+        {/* Condition chip */}
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 bg-surface-low px-3 py-1.5 rounded-full">
+            <span className="material-icons text-primary" style={{ fontSize: 14 }}>{condInfo.icon}</span>
+            <span className="label-md text-on-surface">{condInfo.label}</span>
+          </span>
+        </div>
+
+        {/* Description */}
+        <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+          <p className="font-manrope text-sm text-on-surface leading-relaxed">{shoe.description}</p>
+        </div>
+
+        {/* Seller */}
+        <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
+              <span className="material-icons text-white" style={{ fontSize: 18 }}>person</span>
+            </div>
+            <div>
+              <p className="font-jakarta font-bold text-sm text-on-surface">
+                {shoe.seller.name ?? shoe.seller.email ?? "Seller"}
+              </p>
+              <p className="font-manrope text-xs text-on-surface-variant">Verified Seller</p>
+            </div>
+          </div>
+          <span className="material-icons text-on-surface-variant" style={{ fontSize: 20 }}>arrow_forward_ios</span>
+        </div>
+
+        {/* More drops */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-jakarta font-bold text-base text-on-surface">More Drops</h2>
+            <Link href={`/buy?type=${shoe.type}`} className="flex items-center gap-1 text-primary font-jakarta font-semibold text-sm">
+              VIEW ALL <span className="material-icons" style={{ fontSize: 16 }}>east</span>
+            </Link>
+          </div>
+          <p className="font-manrope text-xs text-on-surface-variant">Browse more {shoe.type === "PAIR" ? "paired" : "single"} shoes →</p>
+        </div>
+      </div>
+
+      {/* ── Bottom CTAs ── */}
+      {isAvailable && !isSeller && (
+        <div className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-3 space-y-2 z-50">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowBuySheet(true)}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full gradient-primary text-white font-jakarta font-bold shadow-pink-glow"
+            >
+              <span className="material-icons" style={{ fontSize: 18 }}>shopping_bag</span>
+              BUY FOR ${shoe.price.toFixed(2)}
+            </button>
+            <button
+              onClick={() => setShowBuySheet(true)}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full bg-surface-highest text-on-surface font-jakarta font-bold"
+            >
+              <span className="material-icons" style={{ fontSize: 18 }}>swap_horiz</span>
+              TRADE FOR 1 CREDIT
+            </button>
+          </div>
+          <p className="text-center font-manrope text-xs text-on-surface-variant">
+            No credits? Trade in your old pairs to earn 1 credit
+          </p>
+        </div>
+      )}
+
+      {shoe.status !== "AVAILABLE" && (
+        <div className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-4 z-50">
+          <div className="w-full py-3.5 rounded-full bg-surface-highest text-center font-jakarta font-bold text-on-surface-variant">
+            {shoe.status === "SOLD" ? "Sold Out" : "Pending Sale"}
+          </div>
+        </div>
+      )}
+
+      {isSeller && (
+        <div className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-4 z-50">
+          <div className="w-full py-3.5 rounded-full bg-surface-low text-center font-jakarta font-bold text-on-surface">
+            Your Listing
+          </div>
+        </div>
+      )}
+
+      {/* ── Buy Bottom Sheet ── */}
+      {showBuySheet && (
+        <div className="fixed inset-0 z-[60] flex flex-col justify-end">
+          <div className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onClick={() => setShowBuySheet(false)} />
+          <div className="relative bg-surface-lowest rounded-t-5xl p-6 max-h-[85vh] overflow-y-auto">
+            <div className="w-12 h-1.5 bg-surface-highest rounded-full mx-auto mb-6" />
+            <h2 className="font-jakarta font-extrabold text-xl text-on-surface mb-5">Complete Purchase</h2>
 
             {!session && (
-              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800 mb-4">
-                  You can continue as a guest or{" "}
-                  <Link href="/auth/signin" className="font-semibold underline">
-                    sign in
-                  </Link>
+              <div className="space-y-3 mb-5">
+                <p className="font-manrope text-sm text-on-surface-variant">
+                  Continue as guest or{" "}
+                  <Link href="/auth/signin" className="text-primary font-semibold">sign in</Link>
                 </p>
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Your Name"
-                    value={buyerName}
-                    onChange={(e) => setBuyerName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Your Email"
-                    value={buyerEmail}
-                    onChange={(e) => setBuyerEmail(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={buyerName}
+                  onChange={(e) => setBuyerName(e.target.value)}
+                  className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none"
+                />
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  value={buyerEmail}
+                  onChange={(e) => setBuyerEmail(e.target.value)}
+                  className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none"
+                />
               </div>
             )}
 
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Your Offer (or buy at asking price)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={offerPrice}
-                onChange={(e) => setOfferPrice(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              {parseFloat(offerPrice) !== shoe.price && (
-                <p className="text-sm text-orange-600 mt-1">
-                  You're making a counteroffer. The seller will be notified.
-                </p>
+            <div className="mb-5">
+              <label className="label-md text-on-surface-variant mb-2 block">Your offer</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-jakarta font-bold text-on-surface-variant">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={offerPrice}
+                  onChange={(e) => setOfferPrice(e.target.value)}
+                  className="w-full pl-8 pr-4 py-3 bg-surface-low rounded-2xl font-manrope text-sm text-on-surface ghost-border focus:outline-none"
+                />
+              </div>
+              {parseFloat(offerPrice) !== shoe.price && offerPrice && (
+                <p className="font-manrope text-xs text-tertiary mt-1">You're making a counteroffer — seller will be notified.</p>
               )}
             </div>
 
-            <div className="border-t pt-4 mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">Your Offer:</span>
-                <span className="font-semibold">${(parseFloat(offerPrice) || 0).toFixed(2)}</span>
+            {/* Summary */}
+            <div className="bg-surface-low rounded-3xl p-4 mb-5 space-y-2">
+              <div className="flex justify-between font-manrope text-sm">
+                <span className="text-on-surface-variant">Offer</span>
+                <span className="font-semibold text-on-surface">${(parseFloat(offerPrice) || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">Service Fee:</span>
-                <span className="font-semibold">${serviceFee.toFixed(2)}</span>
+              <div className="flex justify-between font-manrope text-sm">
+                <span className="text-on-surface-variant">Service fee</span>
+                <span className="font-semibold text-on-surface">$0.99</span>
               </div>
-              <div className="flex justify-between items-center text-lg font-bold border-t pt-2">
-                <span>Total:</span>
-                <span className="text-purple-600">${totalPrice.toFixed(2)}</span>
+              <div className="flex justify-between font-jakarta font-bold text-base pt-2 border-t border-surface-high">
+                <span>Total</span>
+                <span className="text-primary">${((parseFloat(offerPrice) || 0) + 0.99).toFixed(2)}</span>
               </div>
             </div>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                {error}
-              </div>
+            {submitError && (
+              <p className="font-manrope text-sm text-primary mb-3">{submitError}</p>
             )}
 
             <div className="flex gap-3">
               <button
-                onClick={() => setShowPurchaseModal(false)}
-                className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                disabled={isSubmitting}
+                onClick={() => setShowBuySheet(false)}
+                className="flex-1 py-3.5 rounded-full bg-surface-highest text-on-surface font-jakarta font-bold"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitOffer}
                 disabled={isSubmitting}
-                className="flex-1 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition disabled:bg-gray-400"
+                className="flex-1 py-3.5 rounded-full gradient-primary text-white font-jakarta font-bold shadow-pink-glow disabled:opacity-50"
               >
-                {isSubmitting ? "Submitting..." : "Submit Offer"}
+                {isSubmitting ? "Submitting…" : "Submit Offer"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

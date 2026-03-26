@@ -5,49 +5,71 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 
+const AGE_TABS = ["Baby (0C–4C)", "Toddler", "Youth"] as const
+type AgeTab = typeof AGE_TABS[number]
+
+const SIZE_OPTIONS: Record<AgeTab, string[]> = {
+  "Baby (0C–4C)":  ["0C","1C","2C","3C","4C"],
+  "Toddler":       ["5C","6C","7C","8C","9C","10C"],
+  "Youth":         ["11C","12C","13C","1Y","2Y","3Y","4Y","5Y","6Y","7Y"],
+}
+
+const CONDITIONS = [
+  {
+    key: "NEW",
+    label: "Brand New",
+    desc: "Never worn, original box included",
+    credits: 450,
+    icon: "diamond",
+  },
+  {
+    key: "LIKE_NEW",
+    label: "Lightly Worn",
+    desc: "Worn a few times, still looks fresh",
+    credits: 300,
+    icon: "sentiment_satisfied",
+  },
+  {
+    key: "GOOD",
+    label: "Well-Loved",
+    desc: "Heavy wear. Perfect for trade!",
+    credits: 150,
+    icon: "favorite",
+  },
+]
+
+const LISTING_TYPES = [
+  { key: "sell",   label: "Sell",   icon: "payments" },
+  { key: "trade",  label: "Trade",  icon: "swap_horiz" },
+  { key: "donate", label: "Donate", icon: "volunteer_activism" },
+]
+
 function SellContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session } = useSession()
-  const type = searchParams.get("type") as "SINGLE" | "PAIR" | null
+  const initialType = (searchParams.get("type") ?? "PAIR") as "SINGLE" | "PAIR"
 
+  const [ageTab, setAgeTab] = useState<AgeTab>("Toddler")
   const [formData, setFormData] = useState({
     brand: "",
-    year: new Date().getFullYear(),
     color: "",
+    year: new Date().getFullYear(),
     size: "",
-    condition: "GOOD",
+    condition: "NEW",
     description: "",
     price: "",
+    type: initialType,
   })
-
+  const [listingType, setListingType] = useState<"sell" | "trade" | "donate">("sell")
   const [images, setImages] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  if (!type || (type !== "SINGLE" && type !== "PAIR")) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-3xl shadow-xl text-center border-4 border-pink-300">
-          <h2 className="text-2xl font-fredoka font-bold text-gray-800 mb-4">Invalid Selection</h2>
-          <p className="text-gray-600 mb-6">Please select a shoe type from the home page.</p>
-          <Link href="/" className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full hover:from-pink-600 hover:to-purple-600 transition shadow-lg font-fredoka font-semibold">
-            Go Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const typeLabel = type === "SINGLE" ? "Single Shoe" : "Pair of Shoes"
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
-
-    const fileArray = Array.from(files).slice(0, 5) // Max 5 images
-
-    fileArray.forEach((file) => {
+    Array.from(files).slice(0, 5 - images.length).forEach((file) => {
       const reader = new FileReader()
       reader.onloadend = () => {
         setImages((prev) => [...prev, reader.result as string].slice(0, 5))
@@ -56,247 +78,319 @@ function SellContent() {
     })
   }
 
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
-  }
+  const removeImage = (i: number) => setImages((prev) => prev.filter((_, idx) => idx !== i))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsSubmitting(true)
 
-    // Validation
     if (!session) {
-      setError("You must be signed in to sell shoes. Redirecting to sign in...")
-      setTimeout(() => router.push("/auth/signin"), 2000)
+      setError("You must be signed in to post a listing.")
+      setIsSubmitting(false)
+      router.push("/auth/signin")
       return
     }
-
-    if (formData.description.length > 500) {
-      setError("Description must be 500 characters or less")
+    if (images.length === 0) {
+      setError("Please upload at least one photo.")
       setIsSubmitting(false)
       return
     }
-
-    if (images.length === 0) {
-      setError("Please upload at least one image")
+    if (!formData.size) {
+      setError("Please select a size.")
       setIsSubmitting(false)
       return
     }
 
     try {
-      const response = await fetch("/api/shoes", {
+      const res = await fetch("/api/shoes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          type,
+          price: listingType === "sell" ? parseFloat(formData.price) : 0,
           images: JSON.stringify(images),
-          price: parseFloat(formData.price),
+          listingType,
         }),
       })
-
-      if (!response.ok) {
-        throw new Error("Failed to create listing")
-      }
-
-      const data = await response.json()
+      if (!res.ok) throw new Error("Failed to create listing")
+      const data = await res.json()
       router.push(`/shoe/${data.id}`)
-    } catch (err) {
-      setError("Failed to create listing. Please try again.")
-      console.error(err)
+    } catch {
+      setError("Failed to post listing. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const selectedCondition = CONDITIONS.find((c) => c.key === formData.condition)
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
-      {/* Header */}
-      <header className="p-6">
-        <Link href={`/portal?type=${type}`} className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 transition drop-shadow-lg">
-          ← Back
+    <div className="min-h-screen bg-surface pb-24">
+
+      {/* ── Header ── */}
+      <header className="glass-nav sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+          <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>arrow_back</span>
         </Link>
+        <h1 className="font-jakarta font-extrabold text-lg text-on-surface">Post</h1>
+        <div className="w-10" />
       </header>
 
-      {/* Form */}
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Sell {typeLabel}</h1>
-          <p className="text-gray-600 mb-8">Fill out the details below to list your shoes for sale.</p>
+      <div className="px-4 pt-6 pb-8">
+        {/* ── Hero text ── */}
+        <div className="mb-6">
+          <h2 className="font-jakarta font-extrabold text-3xl text-on-surface mb-1">
+            Fresh Drop! 👟
+          </h2>
+          <p className="font-manrope text-on-surface-variant text-sm">
+            List your kid's kicks for the next generation.
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Brand */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Brand *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.brand}
-                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="e.g., Nike, Adidas, New Balance"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* Year & Color */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Year *
+          {/* ── Photos ── */}
+          <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+            <label className="label-md text-on-surface-variant mb-3 block">Photos (up to 5)</label>
+            <div className="flex gap-3 flex-wrap">
+              {/* Upload trigger */}
+              {images.length < 5 && (
+                <label className="w-24 h-24 rounded-3xl bg-surface-low flex flex-col items-center justify-center cursor-pointer hover:bg-surface-high transition">
+                  <span className="material-icons text-on-surface-variant" style={{ fontSize: 28 }}>add_a_photo</span>
+                  <span className="label-md text-on-surface-variant mt-1">Cover</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                 </label>
-                <input
-                  type="number"
-                  required
-                  min="2000"
-                  max={new Date().getFullYear() + 1}
-                  value={formData.year}
-                  onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Color *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="e.g., Red, Blue, Black"
-                />
-              </div>
-            </div>
-
-            {/* Size & Condition */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Size *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.size}
-                  onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="e.g., 5, 6.5, 7"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Condition *
-                </label>
-                <select
-                  value={formData.condition}
-                  onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="NEW">New</option>
-                  <option value="LIKE_NEW">Like New</option>
-                  <option value="GOOD">Good</option>
-                  <option value="FAIR">Fair</option>
-                  <option value="WORN">Worn</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description * ({formData.description.length}/500)
-              </label>
-              <textarea
-                required
-                maxLength={500}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32"
-                placeholder="Describe the shoes, any notable features, wear, etc."
-              />
-            </div>
-
-            {/* Price */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Price (USD) *
-              </label>
-              <input
-                type="number"
-                required
-                min="0.01"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="0.00"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Note: A $0.99 service fee will be added to the buyer at checkout
-              </p>
-            </div>
-
-            {/* Images */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Images * (Max 5)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              {images.length > 0 && (
-                <div className="grid grid-cols-3 gap-4 mt-4">
-                  {images.map((img, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-32 object-cover rounded-lg" />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(idx)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+              )}
+              {images.map((img, idx) => (
+                <div key={idx} className="relative w-24 h-24 rounded-3xl overflow-hidden">
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-on-surface/80 text-surface flex items-center justify-center"
+                  >
+                    <span className="material-icons" style={{ fontSize: 14 }}>close</span>
+                  </button>
+                  {idx > 0 && (
+                    <label className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-surface-lowest/80 flex items-center justify-center cursor-pointer">
+                      <span className="material-icons" style={{ fontSize: 14 }}>add</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    </label>
+                  )}
                 </div>
+              ))}
+              {images.length > 0 && images.length < 5 && (
+                <label className="w-24 h-24 rounded-3xl bg-surface-low flex items-center justify-center cursor-pointer hover:bg-surface-high transition">
+                  <span className="material-icons text-on-surface-variant" style={{ fontSize: 28 }}>add</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
+                </label>
               )}
             </div>
+          </div>
 
-            {/* Error */}
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                {error}
+          {/* ── Name ── */}
+          <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+            <label className="label-md text-on-surface-variant mb-2 block">What are they called?</label>
+            <input
+              type="text"
+              required
+              value={formData.brand}
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+              placeholder="e.g. Air Max 'Bubbles'"
+              className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
+            />
+          </div>
+
+          {/* ── Size ── */}
+          <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+            <label className="label-md text-on-surface-variant mb-3 block">Select the size</label>
+            {/* Age tabs */}
+            <div className="flex gap-2 mb-3">
+              {AGE_TABS.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => { setAgeTab(tab); setFormData({ ...formData, size: "" }) }}
+                  className={`flex-1 py-1.5 rounded-full font-jakarta font-semibold text-xs transition-all ${
+                    ageTab === tab
+                      ? "gradient-primary text-white"
+                      : "bg-surface-low text-on-surface-variant"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+            {/* Size chips */}
+            <div className="flex flex-wrap gap-2">
+              {SIZE_OPTIONS[ageTab].map((sz) => (
+                <button
+                  key={sz}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, size: sz })}
+                  className={`px-4 py-2 rounded-2xl font-jakarta font-bold text-sm transition-all ${
+                    formData.size === sz
+                      ? "bg-tertiary-container text-on-surface shadow-ambient"
+                      : "bg-surface-high text-on-surface-variant"
+                  }`}
+                >
+                  {sz}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Condition ── */}
+          <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+            <label className="label-md text-on-surface-variant mb-3 block">Condition</label>
+            <div className="space-y-2">
+              {CONDITIONS.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, condition: c.key })}
+                  className={`w-full flex items-center gap-3 p-3 rounded-3xl transition-all ${
+                    formData.condition === c.key
+                      ? "bg-surface-low ring-2 ring-primary"
+                      : "bg-surface hover:bg-surface-low"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                    formData.condition === c.key ? "gradient-primary" : "bg-surface-high"
+                  }`}>
+                    <span className={`material-icons ${formData.condition === c.key ? "text-white" : "text-on-surface-variant"}`} style={{ fontSize: 20 }}>
+                      {c.icon}
+                    </span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-jakarta font-bold text-sm text-on-surface">{c.label}</p>
+                    <p className="font-manrope text-xs text-on-surface-variant">{c.desc}</p>
+                  </div>
+                  <span className="font-jakarta font-extrabold text-sm text-primary">+{c.credits}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Description ── */}
+          <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+            <label className="label-md text-on-surface-variant mb-2 block">
+              Tell the story ({formData.description.length}/500)
+            </label>
+            <textarea
+              maxLength={500}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="What makes these kicks special?"
+              rows={4}
+              className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition resize-none"
+            />
+          </div>
+
+          {/* ── Listing type ── */}
+          <div className="bg-surface-lowest rounded-4xl p-4 shadow-ambient">
+            <label className="label-md text-on-surface-variant mb-3 block">What do you want to do?</label>
+            <div className="flex gap-2">
+              {LISTING_TYPES.map((lt) => (
+                <button
+                  key={lt.key}
+                  type="button"
+                  onClick={() => setListingType(lt.key as typeof listingType)}
+                  className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-3xl font-jakarta font-bold text-xs transition-all ${
+                    listingType === lt.key
+                      ? "gradient-primary text-white shadow-pink-glow"
+                      : "bg-surface-low text-on-surface-variant"
+                  }`}
+                >
+                  <span className="material-icons" style={{ fontSize: 22 }}>{lt.icon}</span>
+                  {lt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Price input for sell */}
+            {listingType === "sell" && (
+              <div className="mt-4">
+                <label className="label-md text-on-surface-variant mb-2 block">Price (USD)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-jakarta font-bold text-on-surface-variant">$</span>
+                  <input
+                    type="number"
+                    required={listingType === "sell"}
+                    min="0.01"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full pl-8 pr-4 py-3 bg-surface-low rounded-2xl font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
+                  />
+                </div>
+                <p className="label-md text-on-surface-variant mt-1">+ $0.99 service fee added at checkout</p>
               </div>
             )}
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? "Creating Listing..." : "Create Listing"}
-            </button>
-          </form>
-        </div>
+            {listingType === "trade" && (
+              <div className="mt-3 p-3 bg-surface-low rounded-3xl">
+                <p className="font-manrope text-xs text-on-surface-variant">
+                  You'll earn <span className="font-bold text-primary">{selectedCondition?.credits ?? 0} credits</span> when your listing goes live.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* ── Error ── */}
+          {error && (
+            <div className="p-4 bg-surface-low rounded-3xl">
+              <p className="font-manrope text-sm text-primary">{error}</p>
+            </div>
+          )}
+
+          {/* ── Submit ── */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-4 rounded-full gradient-primary text-white font-jakarta font-extrabold text-base shadow-pink-glow hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {isSubmitting ? "Posting…" : "Post Listing"}
+          </button>
+        </form>
       </div>
-    </main>
+
+      {/* ── Bottom Nav ── */}
+      <nav className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-2 flex justify-around items-center z-50">
+        <Link href="/" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>home</span>
+          <span className="label-md">Home</span>
+        </Link>
+        <Link href="/buy?type=PAIR" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>search</span>
+          <span className="label-md">Search</span>
+        </Link>
+        <button className="flex flex-col items-center gap-0.5 text-primary">
+          <span className="material-icons" style={{ fontSize: 28 }}>add_circle</span>
+          <span className="label-md text-primary">Post</span>
+        </button>
+        <Link href="/notifications" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>layers</span>
+          <span className="label-md">Rack</span>
+        </Link>
+        <Link href="/portal" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>confirmation_number</span>
+          <span className="label-md">Credits</span>
+        </Link>
+      </nav>
+    </div>
   )
 }
 
 export default function Sell() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    }>
       <SellContent />
     </Suspense>
   )

@@ -1,105 +1,133 @@
 "use client"
 
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 
 function PortalContent() {
-  const searchParams = useSearchParams()
-  const type = searchParams.get("type") as "SINGLE" | "PAIR" | null
-
-  if (!type || (type !== "SINGLE" && type !== "PAIR")) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-3xl shadow-xl text-center border-4 border-pink-300">
-          <h2 className="text-2xl font-fredoka font-bold text-gray-800 mb-4">Invalid Selection</h2>
-          <p className="text-gray-600 mb-6">Please select a shoe type from the home page.</p>
-          <Link href="/" className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full hover:from-pink-600 hover:to-purple-600 transition shadow-lg font-fredoka font-semibold">
-            Go Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const typeLabel = type === "SINGLE" ? "Single Shoes" : "Pairs of Shoes"
-  const typeEmoji = type === "SINGLE" ? "👟" : "👟👟"
-  const typeColor = type === "SINGLE" ? "blue" : "purple"
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
+    <div className="min-h-screen bg-surface flex flex-col pb-24">
+
       {/* Header */}
-      <header className="p-6 flex justify-between items-center">
-        <Link href="/" className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 transition drop-shadow-lg">
-          ← Shoe Shoe
+      <header className="glass-nav sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+          <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>arrow_back</span>
         </Link>
+        <h1 className="font-jakarta font-extrabold text-lg text-on-surface">The Playground</h1>
+        <div className="w-10" />
       </header>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <div className="text-7xl mb-4 animate-bounce">{typeEmoji}</div>
-          <h2 className="text-5xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-4 drop-shadow-lg">{typeLabel}</h2>
-          <p className="text-2xl text-gray-700 max-w-2xl mx-auto font-medium">
-            Would you like to buy or sell?
-          </p>
+      {/* Hero */}
+      <div className="gradient-primary px-6 pt-8 pb-10 relative overflow-hidden">
+        <div className="sticker inline-block mb-4">
+          <span className="label-md bg-white text-primary px-3 py-1 rounded-full">Choose your move</span>
         </div>
-
-        {/* Buy/Sell Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Buy Card */}
-          <Link
-            href={`/buy?type=${type}`}
-            className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border-4 border-purple-400 hover:border-purple-500 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-200 to-pink-200 opacity-30"></div>
-            <div className="relative p-8 text-center">
-              <div className="text-7xl mb-4">🛒</div>
-              <h3 className="text-4xl font-fredoka font-bold text-purple-600 mb-3 drop-shadow-md">Buy</h3>
-              <p className="text-gray-700 mb-6 text-lg font-medium">
-                Browse available {typeLabel.toLowerCase()} and make a purchase!
-              </p>
-              <div className="inline-block px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-purple-600 group-hover:to-pink-600 transition shadow-lg">
-                Browse Inventory →
-              </div>
-            </div>
-          </Link>
-
-          {/* Sell Card */}
-          <Link
-            href={`/sell?type=${type}`}
-            className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border-4 border-green-400 hover:border-green-500 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-green-200 to-cyan-200 opacity-30"></div>
-            <div className="relative p-8 text-center">
-              <div className="text-7xl mb-4">💰</div>
-              <h3 className="text-4xl font-fredoka font-bold text-green-600 mb-3 drop-shadow-md">Sell</h3>
-              <p className="text-gray-700 mb-6 text-lg font-medium">
-                List your {typeLabel.toLowerCase()} for sale and reach buyers!
-              </p>
-              <div className="inline-block px-8 py-4 bg-gradient-to-r from-green-500 to-cyan-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-green-600 group-hover:to-cyan-600 transition shadow-lg">
-                List Shoes →
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Info */}
-        <div className="mt-12 text-center">
-          <p className="text-gray-500">
-            <Link href="/" className="text-purple-600 hover:underline">
-              ← Change shoe type
-            </Link>
-          </p>
-        </div>
+        <h2 className="font-jakarta font-extrabold text-3xl text-white mb-2">What's the play?</h2>
+        <p className="font-manrope text-white/75 text-sm">Browse drops, post your heat, or trade for credits.</p>
+        <div
+          className="absolute right-[-30px] bottom-[-20px] w-48 h-48 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }}
+        />
       </div>
-    </main>
+
+      {/* Action cards */}
+      <div className="px-4 -mt-6 relative z-10 space-y-3">
+
+        {/* Browse Pairs */}
+        <Link
+          href="/buy?type=PAIR"
+          className="group flex items-center gap-4 bg-surface-lowest rounded-4xl p-5 shadow-ambient hover:scale-[1.02] transition-transform"
+        >
+          <div className="w-14 h-14 rounded-3xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-pink-glow">
+            <span className="material-icons text-white" style={{ fontSize: 26 }}>style</span>
+          </div>
+          <div className="flex-1">
+            <p className="font-jakarta font-extrabold text-base text-on-surface">Shop Paired Drops</p>
+            <p className="font-manrope text-xs text-on-surface-variant mt-0.5">Complete sets for maximum swagger</p>
+          </div>
+          <span className="material-icons text-on-surface-variant" style={{ fontSize: 20 }}>chevron_right</span>
+        </Link>
+
+        {/* Browse Singles */}
+        <Link
+          href="/buy?type=SINGLE"
+          className="group flex items-center gap-4 bg-surface-lowest rounded-4xl p-5 shadow-ambient hover:scale-[1.02] transition-transform"
+        >
+          <div className="w-14 h-14 rounded-3xl bg-secondary flex items-center justify-center flex-shrink-0 shadow-float">
+            <span className="material-icons text-white" style={{ fontSize: 26 }}>directions_walk</span>
+          </div>
+          <div className="flex-1">
+            <p className="font-jakarta font-extrabold text-base text-on-surface">Shop Single Shoes</p>
+            <p className="font-manrope text-xs text-on-surface-variant mt-0.5">Lost one? Need a spare? We got you.</p>
+          </div>
+          <span className="material-icons text-on-surface-variant" style={{ fontSize: 20 }}>chevron_right</span>
+        </Link>
+
+        {/* Sell Pairs */}
+        <Link
+          href="/sell?type=PAIR"
+          className="group flex items-center gap-4 bg-surface-lowest rounded-4xl p-5 shadow-ambient hover:scale-[1.02] transition-transform"
+        >
+          <div className="w-14 h-14 rounded-3xl bg-tertiary flex items-center justify-center flex-shrink-0 shadow-float">
+            <span className="material-icons text-white" style={{ fontSize: 26 }}>sell</span>
+          </div>
+          <div className="flex-1">
+            <p className="font-jakarta font-extrabold text-base text-on-surface">Post a Drop</p>
+            <p className="font-manrope text-xs text-on-surface-variant mt-0.5">List your pairs or singles and earn credits</p>
+          </div>
+          <span className="material-icons text-on-surface-variant" style={{ fontSize: 20 }}>chevron_right</span>
+        </Link>
+
+        {/* Trade */}
+        <Link
+          href="/sell?type=PAIR"
+          className="group flex items-center gap-4 bg-surface-lowest rounded-4xl p-5 shadow-ambient hover:scale-[1.02] transition-transform"
+        >
+          <div className="w-14 h-14 rounded-3xl bg-surface-highest flex items-center justify-center flex-shrink-0">
+            <span className="material-icons text-on-surface" style={{ fontSize: 26 }}>swap_horiz</span>
+          </div>
+          <div className="flex-1">
+            <p className="font-jakarta font-extrabold text-base text-on-surface">Trade for Credits</p>
+            <p className="font-manrope text-xs text-on-surface-variant mt-0.5">Swap kicks using SS Points</p>
+          </div>
+          <span className="material-icons text-on-surface-variant" style={{ fontSize: 20 }}>chevron_right</span>
+        </Link>
+
+      </div>
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-2 flex justify-around items-center z-50">
+        <Link href="/" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>local_fire_department</span>
+          <span className="label-md">Drops</span>
+        </Link>
+        <Link href="/buy?type=PAIR" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>search</span>
+          <span className="label-md">Search</span>
+        </Link>
+        <Link href="/portal" className="flex flex-col items-center gap-0.5 text-primary">
+          <span className="material-icons" style={{ fontSize: 24 }}>add_circle</span>
+          <span className="label-md text-primary">Post</span>
+        </Link>
+        <Link href="/notifications" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>layers</span>
+          <span className="label-md">Rack</span>
+        </Link>
+        <Link href="/auth/signin" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>person</span>
+          <span className="label-md">Profile</span>
+        </Link>
+      </nav>
+    </div>
   )
 }
 
 export default function Portal() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    }>
       <PortalContent />
     </Suspense>
   )

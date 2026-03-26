@@ -1,122 +1,308 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 
+interface Shoe {
+  id: string
+  type: string
+  brand: string
+  size: string
+  price: number
+  images: string
+  condition: string
+}
+
 export default function Home() {
   const { data: session } = useSession()
+  const [ageTab, setAgeTab] = useState<"toddler" | "youth">("toddler")
+  const [pairedShoes, setPairedShoes] = useState<Shoe[]>([])
+  const [singleShoes, setSingleShoes] = useState<Shoe[]>([])
+  const [email, setEmail] = useState("")
+
+  useEffect(() => {
+    fetch("/api/shoes?type=PAIR&status=AVAILABLE&limit=4")
+      .then((r) => r.json())
+      .then((data) => setPairedShoes(Array.isArray(data) ? data.slice(0, 4) : []))
+      .catch(() => {})
+
+    fetch("/api/shoes?type=SINGLE&status=AVAILABLE&limit=4")
+      .then((r) => r.json())
+      .then((data) => setSingleShoes(Array.isArray(data) ? data.slice(0, 4) : []))
+      .catch(() => {})
+  }, [])
+
+  const getFirstImage = (images: string) => {
+    try {
+      const arr = JSON.parse(images)
+      return Array.isArray(arr) && arr[0] ? arr[0] : null
+    } catch {
+      return null
+    }
+  }
+
+  const isHot = (shoe: Shoe) => shoe.condition === "NEW" || shoe.condition === "LIKE_NEW"
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
-      {/* Header */}
-      <header className="p-6 flex justify-between items-center">
-        <h1 className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-lg">
-          Shoe Shoe
-        </h1>
-        <div className="flex gap-4">
+    <div className="min-h-screen bg-surface pb-24">
+
+      {/* ── Top Nav ── */}
+      <header className="glass-nav sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+          <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>menu</span>
+        </button>
+
+        {/* Logo */}
+        <Link href="/" className="font-jakarta font-extrabold text-lg tracking-tight gradient-primary-text">
+          UP
+        </Link>
+
+        <div className="flex items-center gap-2">
           {session ? (
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700 font-medium">Welcome, {session.user?.name || session.user?.email}</span>
-              <Link
-                href="/api/auth/signout"
-                className="px-4 py-2 bg-pink-400 text-white rounded-full hover:bg-pink-500 transition shadow-md font-fredoka font-semibold"
-              >
-                Sign Out
-              </Link>
-            </div>
+            <Link href="/api/auth/signout" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+              <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>person</span>
+            </Link>
           ) : (
-            <Link
-              href="/auth/signin"
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 transition shadow-lg font-fredoka font-semibold"
-            >
-              Sign In
+            <Link href="/auth/signin" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+              <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>person_outline</span>
             </Link>
           )}
+          <Link href="/buy?type=PAIR" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+            <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>shopping_bag</span>
+          </Link>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-6xl md:text-7xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 mb-6 drop-shadow-2xl" style={{textShadow: '3px 3px 0px rgba(255,255,255,0.5), 5px 5px 0px rgba(0,0,0,0.1)'}}>
-            Shoe Shoe
-          </h2>
-          <p className="text-2xl text-gray-700 max-w-2xl mx-auto font-medium">
-            The super fun marketplace for children's shoes! Buy and sell singles or pairs! 🎉
-          </p>
+      {/* ── Desktop Nav Links ── */}
+      <nav className="hidden md:flex px-6 gap-8 py-2 border-b border-surface-high">
+        <Link href="/buy?type=PAIR" className="font-jakarta font-semibold text-sm text-on-surface hover:text-primary transition">Drops</Link>
+        <Link href="/buy?type=PAIR" className="font-jakarta font-semibold text-sm text-on-surface-variant hover:text-primary transition">Collections</Link>
+        <Link href="/sell?type=PAIR" className="font-jakarta font-semibold text-sm text-on-surface-variant hover:text-primary transition">Sell</Link>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden gradient-primary px-6 pt-10 pb-0 min-h-[380px]">
+        {/* Sticker badge */}
+        <div className="inline-block sticker mb-4">
+          <span className="label-md bg-white text-primary px-3 py-1 rounded-full shadow-ambient">
+            New Season Drop
+          </span>
         </div>
 
-        {/* Choice Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Single Shoes Card */}
-          <Link
-            href="/portal?type=SINGLE"
-            className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border-4 border-cyan-400 hover:border-cyan-500 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-200 to-blue-200 opacity-30"></div>
-            <div className="relative p-8 text-center">
-              <div className="text-7xl mb-4 animate-bounce">👟</div>
-              <h3 className="text-4xl font-fredoka font-bold text-cyan-600 mb-3 drop-shadow-md">
-                Single Shoes
-              </h3>
-              <p className="text-gray-700 mb-6 text-lg font-medium">
-                Lost one? Find a mate! Perfect for parents looking to complete a pair! 👟
-              </p>
-              <div className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-cyan-600 group-hover:to-blue-600 transition shadow-lg">
-                Browse Singles →
-              </div>
-            </div>
-          </Link>
+        <h1 className="display-lg text-white mb-3" style={{ fontFamily: "var(--font-jakarta)" }}>
+          THE URBAN<br />PLAYGROUND
+        </h1>
 
-          {/* Pairs Card */}
-          <Link
-            href="/portal?type=PAIR"
-            className="group relative bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border-4 border-pink-400 hover:border-pink-500 hover:scale-105"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-200 to-purple-200 opacity-30"></div>
-            <div className="relative p-8 text-center">
-              <div className="text-7xl mb-4 animate-bounce">👟👟</div>
-              <h3 className="text-4xl font-fredoka font-bold text-pink-600 mb-3 drop-shadow-md">
-                Pairs of Shoes
-              </h3>
-              <p className="text-gray-700 mb-6 text-lg font-medium">
-                Traditional matching pairs of children's shoes at great prices!
-              </p>
-              <div className="inline-block px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full font-fredoka font-bold text-lg group-hover:from-pink-600 group-hover:to-purple-600 transition shadow-lg">
-                Browse Pairs →
-              </div>
-            </div>
-          </Link>
-        </div>
+        <p className="font-manrope text-white/80 text-sm mb-6 max-w-xs leading-relaxed">
+          The 100% kids-only marketplace. Toddlers to Teens, curated for the next generation of sneakerheads.
+        </p>
 
-        {/* Info Section */}
-        <div className="mt-16 max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-8 border-4 border-yellow-300">
-          <h3 className="text-3xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-6">How It Works</h3>
-          <div className="space-y-4 text-gray-700">
-            <div className="flex items-start gap-4 p-3 bg-cyan-50 rounded-2xl">
-              <span className="text-3xl">1️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-cyan-600">Choose:</strong> Select whether you're looking for single shoes or pairs</p>
-            </div>
-            <div className="flex items-start gap-4 p-3 bg-pink-50 rounded-2xl">
-              <span className="text-3xl">2️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-pink-600">Buy or Sell:</strong> Browse available shoes or list your own</p>
-            </div>
-            <div className="flex items-start gap-4 p-3 bg-purple-50 rounded-2xl">
-              <span className="text-3xl">3️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-purple-600">Connect:</strong> Make offers, negotiate, and complete the sale</p>
-            </div>
-            <div className="flex items-start gap-4 p-3 bg-yellow-50 rounded-2xl">
-              <span className="text-3xl">4️⃣</span>
-              <p className="text-lg"><strong className="font-fredoka text-yellow-600">Ship & Rate:</strong> Sellers ship, buyers receive and rate</p>
-            </div>
-          </div>
-          <div className="mt-6 p-4 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl border-2 border-yellow-400">
-            <p className="text-base text-gray-800 font-medium">
-              <strong className="font-fredoka text-orange-600">Service Fee:</strong> A $0.99 fee is added to each purchase to keep Shoe Shoe running smoothly! 🎈
-            </p>
-          </div>
+        <Link
+          href="/buy?type=PAIR"
+          className="inline-flex items-center gap-2 bg-white text-primary font-jakarta font-bold px-6 py-3 rounded-full shadow-pink-glow hover:scale-105 transition-transform mb-8"
+        >
+          Shop Drops
+        </Link>
+
+        {/* Decorative blob */}
+        <div
+          className="absolute right-[-40px] bottom-[-20px] w-64 h-64 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }}
+        />
+      </section>
+
+      {/* ── Age Toggle ── */}
+      <div className="px-4 py-4">
+        <div className="flex bg-surface-high rounded-full p-1 w-fit gap-1">
+          <button
+            onClick={() => setAgeTab("toddler")}
+            className={`px-5 py-2 rounded-full font-jakarta font-semibold text-sm transition-all ${
+              ageTab === "toddler"
+                ? "bg-primary-fixed text-white shadow-ambient"
+                : "text-on-surface-variant"
+            }`}
+          >
+            Toddler (4C–10C)
+          </button>
+          <button
+            onClick={() => setAgeTab("youth")}
+            className={`px-5 py-2 rounded-full font-jakarta font-semibold text-sm transition-all ${
+              ageTab === "youth"
+                ? "bg-primary-fixed text-white shadow-ambient"
+                : "text-on-surface-variant"
+            }`}
+          >
+            Youth (1Y–7Y)
+          </button>
         </div>
       </div>
-    </main>
+
+      {/* ── Paired Shoes ── */}
+      <section className="px-4 mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="font-jakarta font-extrabold text-xl text-on-surface">Paired Shoes</h2>
+            <p className="font-manrope text-xs text-on-surface-variant">Complete sets for maximum swagger.</p>
+          </div>
+          <Link href="/buy?type=PAIR" className="flex items-center gap-1 text-primary font-jakarta font-semibold text-sm">
+            View All <span className="material-icons" style={{ fontSize: 16 }}>arrow_forward</span>
+          </Link>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {pairedShoes.length === 0 ? (
+            <div className="bg-surface-lowest rounded-4xl p-8 text-center shadow-ambient">
+              <p className="font-manrope text-on-surface-variant text-sm">No pairs listed yet.</p>
+              <Link href="/sell?type=PAIR" className="mt-3 inline-block font-jakarta font-bold text-primary text-sm">
+                Be the first to sell →
+              </Link>
+            </div>
+          ) : (
+            pairedShoes.map((shoe) => {
+              const img = getFirstImage(shoe.images)
+              return (
+                <Link
+                  key={shoe.id}
+                  href={`/shoe/${shoe.id}`}
+                  className="group flex items-center gap-4 bg-surface-lowest rounded-4xl p-3 shadow-ambient hover:scale-[1.02] transition-transform"
+                >
+                  {/* Image */}
+                  <div className="relative w-20 h-20 rounded-3xl overflow-hidden bg-surface-low flex-shrink-0">
+                    {img ? (
+                      <img src={img} alt={shoe.brand} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-icons text-outline-variant" style={{ fontSize: 32 }}>image</span>
+                      </div>
+                    )}
+                    {isHot(shoe) && (
+                      <span className="absolute top-1 left-1 label-md bg-primary text-white px-2 py-0.5 rounded-full sticker">
+                        Hot
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-jakarta font-bold text-on-surface truncate">{shoe.brand}</p>
+                    <p className="font-manrope text-xs text-on-surface-variant">Size: {shoe.size}</p>
+                    <p className="font-jakarta font-extrabold text-primary mt-1">${shoe.price.toFixed(2)}</p>
+                  </div>
+
+                  {/* Cart */}
+                  <button
+                    onClick={(e) => { e.preventDefault(); window.location.href = `/shoe/${shoe.id}` }}
+                    className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full gradient-primary text-white shadow-pink-glow"
+                  >
+                    <span className="material-icons" style={{ fontSize: 18 }}>add_shopping_cart</span>
+                  </button>
+                </Link>
+              )
+            })
+          )}
+        </div>
+      </section>
+
+      {/* ── Single Shoes ── */}
+      <section className="px-4 mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="font-jakarta font-extrabold text-xl text-on-surface">Single Shoes</h2>
+            <p className="font-manrope text-xs text-on-surface-variant">Lost a shoe? Need a spare? We got you.</p>
+          </div>
+          <Link href="/buy?type=SINGLE" className="flex items-center gap-1 text-primary font-jakarta font-semibold text-sm">
+            View All <span className="material-icons" style={{ fontSize: 16 }}>arrow_forward</span>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {singleShoes.length === 0 ? (
+            <div className="col-span-2 bg-surface-lowest rounded-4xl p-8 text-center shadow-ambient">
+              <p className="font-manrope text-on-surface-variant text-sm">No singles listed yet.</p>
+              <Link href="/sell?type=SINGLE" className="mt-3 inline-block font-jakarta font-bold text-primary text-sm">
+                List a single →
+              </Link>
+            </div>
+          ) : (
+            singleShoes.map((shoe) => {
+              const img = getFirstImage(shoe.images)
+              return (
+                <Link
+                  key={shoe.id}
+                  href={`/shoe/${shoe.id}`}
+                  className="group bg-surface-lowest rounded-4xl overflow-hidden shadow-ambient hover:scale-[1.02] transition-transform"
+                >
+                  <div className="aspect-square relative bg-surface-low">
+                    {img ? (
+                      <img src={img} alt={shoe.brand} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-icons text-outline-variant" style={{ fontSize: 40 }}>image</span>
+                      </div>
+                    )}
+                    <span className="absolute top-2 left-2 label-md bg-surface-lowest/90 text-on-surface-variant px-2 py-0.5 rounded-full">
+                      {shoe.type === "SINGLE" ? "Single" : "Pair"}
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <p className="font-jakarta font-bold text-sm text-on-surface truncate">{shoe.brand}</p>
+                    <p className="font-jakarta font-extrabold text-primary text-sm mt-1">${shoe.price.toFixed(2)}</p>
+                  </div>
+                </Link>
+              )
+            })
+          )}
+        </div>
+      </section>
+
+      {/* ── Join the Squad ── */}
+      <section className="mx-4 mb-8 gradient-primary rounded-5xl p-6 relative overflow-hidden">
+        {/* Sticker */}
+        <div className="absolute top-3 right-4 sticker-alt">
+          <span className="font-jakarta font-extrabold text-white/90 text-xs bg-white/20 px-3 py-1 rounded-full">
+            FRESH!
+          </span>
+        </div>
+
+        <h2 className="font-jakarta font-extrabold text-2xl text-white mb-2">JOIN THE SQUAD</h2>
+        <p className="font-manrope text-white/80 text-sm mb-5 leading-relaxed">
+          Get exclusive access to limited drops, single-shoe alerts, and parent-approved sneaker news.
+        </p>
+
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="flex-1 px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/60 font-manrope text-sm ghost-border focus:outline-none focus:bg-white/30"
+          />
+          <button className="px-5 py-3 bg-white text-primary font-jakarta font-bold rounded-full hover:scale-105 transition-transform shadow-ambient whitespace-nowrap">
+            Sign Me Up
+          </button>
+        </div>
+      </section>
+
+      {/* ── Bottom Nav ── */}
+      <nav className="fixed bottom-0 left-0 right-0 glass-nav border-t border-surface-high px-4 py-2 flex justify-around items-center z-50">
+        <Link href="/" className="flex flex-col items-center gap-0.5 text-primary">
+          <span className="material-icons" style={{ fontSize: 24 }}>local_fire_department</span>
+          <span className="label-md text-primary">Drops</span>
+        </Link>
+        <Link href="/buy?type=PAIR" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>search</span>
+          <span className="label-md">Search</span>
+        </Link>
+        <Link href="/portal" className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>shopping_cart</span>
+          <span className="label-md">Cart</span>
+        </Link>
+        <Link href={session ? "/notifications" : "/auth/signin"} className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition">
+          <span className="material-icons" style={{ fontSize: 24 }}>person</span>
+          <span className="label-md">Profile</span>
+        </Link>
+      </nav>
+    </div>
   )
 }
