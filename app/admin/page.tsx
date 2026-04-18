@@ -90,7 +90,7 @@ export default function AdminDashboard() {
             <div key={card.key} className="bg-surface-lowest rounded-4xl p-4 shadow-float">
               <span className={`material-icons ${card.cls} mb-2`} style={{ fontSize: 22 }}>{card.icon}</span>
               <p className="font-jakarta font-extrabold text-2xl text-on-surface">
-                {(stats as Record<string, number>)[card.key] ?? 0}
+                {(stats as unknown as Record<string, number>)[card.key] ?? 0}
               </p>
               <p className="font-manrope text-xs text-on-surface-variant">{card.label}</p>
             </div>
