@@ -3,20 +3,15 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const shoe = await prisma.shoe.findUnique({
-      where: {
-        id: params.id,
-      },
+      where: { id },
       include: {
         seller: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+          select: { id: true, name: true, email: true },
         },
       },
     })
@@ -28,9 +23,6 @@ export async function GET(
     return NextResponse.json(shoe)
   } catch (error) {
     console.error("Error fetching shoe:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch shoe" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch shoe" }, { status: 500 })
   }
 }
