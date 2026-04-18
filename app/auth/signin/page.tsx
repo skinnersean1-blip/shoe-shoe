@@ -14,6 +14,7 @@ function SignInContent() {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" })
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +56,8 @@ function SignInContent() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-surface flex flex-col items-center">
+      <div className="w-full max-w-md flex flex-col">
       {/* Hero top */}
       <div className="gradient-primary px-6 pt-12 pb-16 relative overflow-hidden">
         <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 mb-8">
@@ -117,14 +119,25 @@ function SignInContent() {
 
             <div>
               <label className="label-md text-on-surface-variant mb-2 block">Password</label>
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="••••••••"
-                className="w-full bg-surface-low rounded-2xl px-4 py-3 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="••••••••"
+                  className="w-full bg-surface-low rounded-2xl px-4 py-3 pr-12 font-manrope text-sm text-on-surface ghost-border focus:outline-none focus:bg-surface-high transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+                >
+                  <span className="material-icons" style={{ fontSize: 20 }}>
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -138,7 +151,7 @@ function SignInContent() {
               disabled={isSubmitting}
               className="w-full py-4 rounded-full gradient-primary text-white font-jakarta font-extrabold shadow-pink-glow hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
             >
-              {isSubmitting ? "Please wait…" : isSignUp ? "Join the Squad" : "Let's Go"}
+              {isSubmitting ? "Please wait…" : isSignUp ? "Join" : "Let's Go"}
             </button>
           </form>
 
@@ -157,6 +170,7 @@ function SignInContent() {
             </Link>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

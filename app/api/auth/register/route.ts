@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         email: validatedData.email,
         password: hashedPassword,
+        updatedAt: new Date(),
       },
     })
 
