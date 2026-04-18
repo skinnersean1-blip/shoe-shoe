@@ -13,7 +13,7 @@ interface User {
   trustScore: number
   role: string
   createdAt: string
-  _count: { shoes: number; transactions: number }
+  _count: { shoesListed: number; sales: number }
 }
 
 const TRUST_CLS = (score: number) =>
@@ -132,11 +132,11 @@ export default function AdminUsersPage() {
                 {/* Stats */}
                 <div className="flex gap-2 mb-3">
                   <div className="flex-1 bg-surface-low rounded-2xl p-2 text-center">
-                    <p className="font-jakarta font-extrabold text-sm text-on-surface">{user._count?.shoes ?? 0}</p>
+                    <p className="font-jakarta font-extrabold text-sm text-on-surface">{user._count?.shoesListed ?? 0}</p>
                     <p className="font-manrope text-xs text-on-surface-variant">Listings</p>
                   </div>
                   <div className="flex-1 bg-surface-low rounded-2xl p-2 text-center">
-                    <p className="font-jakarta font-extrabold text-sm text-on-surface">{user._count?.transactions ?? 0}</p>
+                    <p className="font-jakarta font-extrabold text-sm text-on-surface">{user._count?.sales ?? 0}</p>
                     <p className="font-manrope text-xs text-on-surface-variant">Trades</p>
                   </div>
                   <div className="flex-1 bg-surface-low rounded-2xl p-2 text-center">
