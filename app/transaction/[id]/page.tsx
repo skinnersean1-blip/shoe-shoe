@@ -17,24 +17,23 @@ interface Transaction {
   deliveredAt: string | null
   buyerName: string | null
   buyerEmail: string | null
-  shoe: {
-    id: string
-    brand: string
-    color: string
-    size: string
-    images: string
-  }
-  seller: {
-    id: string
-    name: string | null
-    email: string | null
-  }
-  buyer: {
-    id: string
-    name: string | null
-    email: string | null
-  } | null
+  shoe: { id: string; brand: string; color: string; size: string; images: string }
+  seller: { id: string; name: string | null; email: string | null }
+  buyer: { id: string; name: string | null; email: string | null } | null
 }
+
+const SHIP_STEPS = [
+  { icon: "camera_alt",      label: "Snap final photos",   sub: "Show condition before boxing" },
+  { icon: "inventory_2",     label: "Box it up tight",     sub: "Include original box if possible" },
+  { icon: "local_shipping",  label: "Drop at carrier",     sub: "USPS / UPS / FedEx accepted" },
+]
+
+const TRACK_STEPS = [
+  { icon: "check_circle",   label: "Order Confirmed",    status: ["ACCEPTED","PAYMENT_PENDING","PAID","SHIPPED","DELIVERED","COMPLETED"] },
+  { icon: "payments",       label: "Payment Received",   status: ["PAID","SHIPPED","DELIVERED","COMPLETED"] },
+  { icon: "local_shipping", label: "Dropped Off",        status: ["SHIPPED","DELIVERED","COMPLETED"] },
+  { icon: "home",           label: "Delivered",          status: ["DELIVERED","COMPLETED"] },
+]
 
 export default function TransactionPage() {
   const params = useParams()
@@ -44,344 +43,328 @@ export default function TransactionPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Shipping form
   const [trackingNumber, setTrackingNumber] = useState("")
   const [shippingMethod, setShippingMethod] = useState("")
+  const [checklist, setChecklist] = useState([false, false, false])
 
   const fetchTransaction = async () => {
     try {
-      const response = await fetch(`/api/transactions/${params.id}`)
-      if (!response.ok) throw new Error("Failed to fetch transaction")
-      const data = await response.json()
-      setTransaction(data)
-    } catch (err) {
-      setError("Failed to load transaction details")
-      console.error(err)
-    } finally {
-      setIsLoading(false)
-    }
+      const res = await fetch(`/api/transactions/${params.id}`)
+      if (!res.ok) throw new Error("Failed to fetch transaction")
+      setTransaction(await res.json())
+    } catch { setError("Failed to load transaction") }
+    finally { setIsLoading(false) }
   }
 
-  useEffect(() => {
-    fetchTransaction()
-  }, [params.id])
+  useEffect(() => { fetchTransaction() }, [params.id])
 
   const handleAction = async (action: string) => {
     setError("")
     setIsSubmitting(true)
-
     try {
-      const body: any = { action }
-
+      const body: Record<string, unknown> = { action }
       if (action === "ship") {
-        if (!shippingMethod) {
-          setError("Please enter shipping method")
-          setIsSubmitting(false)
-          return
-        }
+        if (!shippingMethod) { setError("Please enter a shipping method"); setIsSubmitting(false); return }
         body.shippingMethod = shippingMethod
-        body.trackingNumber = trackingNumber || undefined
+        if (trackingNumber) body.trackingNumber = trackingNumber
       }
-
-      const response = await fetch(`/api/transactions/${params.id}`, {
+      const res = await fetch(`/api/transactions/${params.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to update transaction")
-      }
-
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Update failed") }
       await fetchTransaction()
-    } catch (err: any) {
-      setError(err.message || "Failed to update transaction")
-      console.error(err)
-    } finally {
-      setIsSubmitting(false)
-    }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Update failed")
+    } finally { setIsSubmitting(false) }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
-      </div>
-    )
-  }
+  if (isLoading) return (
+    <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+    </div>
+  )
 
-  if (error && !transaction) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-3xl shadow-lg text-center border-4 border-pink-300">
-          <h2 className="text-2xl font-fredoka font-bold text-gray-800 mb-4">Error</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Link href="/" className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full hover:from-pink-600 hover:to-purple-600 transition shadow-lg font-fredoka font-semibold">
-            Go Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (!transaction) return null
+  if (!transaction) return (
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4 px-4">
+      <span className="material-icons text-outline-variant" style={{ fontSize: 48 }}>error_outline</span>
+      <p className="font-jakarta font-bold text-on-surface">{error || "Transaction not found"}</p>
+      <Link href="/" className="px-5 py-2.5 rounded-full gradient-primary text-white font-jakarta font-bold text-sm shadow-pink-glow">
+        Go Home
+      </Link>
+    </div>
+  )
 
   const isSeller = session?.user?.id === transaction.seller.id
-  const isBuyer =
-    session?.user?.id === transaction.buyer?.id ||
-    session?.user?.email === transaction.buyerEmail
-
-  const images = JSON.parse(transaction.shoe.images)
+  const isBuyer = session?.user?.id === transaction.buyer?.id || session?.user?.email === transaction.buyerEmail
+  const images = (() => { try { return JSON.parse(transaction.shoe.images) } catch { return [] } })()
+  const img = images[0] ?? null
   const totalPrice = transaction.finalPrice + transaction.serviceFee
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return { color: "bg-yellow-100 text-yellow-800", text: "Pending Seller Response" }
-      case "COUNTEROFFER":
-        return { color: "bg-orange-100 text-orange-800", text: "Counteroffer Pending" }
-      case "ACCEPTED":
-        return { color: "bg-green-100 text-green-800", text: "Offer Accepted" }
-      case "PAYMENT_PENDING":
-        return { color: "bg-blue-100 text-blue-800", text: "Awaiting Payment" }
-      case "PAID":
-        return { color: "bg-green-100 text-green-800", text: "Payment Received" }
-      case "SHIPPED":
-        return { color: "bg-purple-100 text-purple-800", text: "Shipped" }
-      case "DELIVERED":
-        return { color: "bg-green-100 text-green-800", text: "Delivered" }
-      case "COMPLETED":
-        return { color: "bg-green-100 text-green-800", text: "Completed" }
-      case "CANCELLED":
-        return { color: "bg-red-100 text-red-800", text: "Cancelled" }
-      default:
-        return { color: "bg-gray-100 text-gray-800", text: status }
+  const isShipMode = isSeller && (transaction.status === "ACCEPTED" || transaction.status === "PAID")
+  const isTrackMode = ["SHIPPED", "DELIVERED", "COMPLETED"].includes(transaction.status)
+
+  const getStatusBadge = (s: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      PENDING:         { label: "Pending",         cls: "bg-surface-high text-on-surface-variant" },
+      ACCEPTED:        { label: "Accepted",         cls: "bg-secondary/10 text-secondary" },
+      PAYMENT_PENDING: { label: "Awaiting Payment", cls: "bg-tertiary/10 text-tertiary" },
+      PAID:            { label: "Ready to Ship",    cls: "bg-secondary/10 text-secondary" },
+      SHIPPED:         { label: "In Transit",       cls: "gradient-primary text-white" },
+      DELIVERED:       { label: "Delivered",        cls: "bg-secondary/20 text-secondary" },
+      COMPLETED:       { label: "Completed",        cls: "bg-secondary/20 text-secondary" },
+      CANCELLED:       { label: "Cancelled",        cls: "bg-surface-high text-on-surface-variant" },
     }
+    return map[s] ?? { label: s, cls: "bg-surface-high text-on-surface-variant" }
   }
 
-  const statusInfo = getStatusInfo(transaction.status)
+  const badge = getStatusBadge(transaction.status)
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-100 to-cyan-100">
+    <div className="min-h-screen bg-surface pb-24">
+
       {/* Header */}
-      <header className="p-6">
-        <Link href="/" className="text-4xl font-fredoka font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 transition drop-shadow-lg">
-          ← Shoe Shoe
+      <header className="glass-nav sticky top-0 z-50 px-4 py-3 flex items-center gap-3">
+        <Link href="/profile" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-low">
+          <span className="material-icons text-on-surface" style={{ fontSize: 22 }}>arrow_back</span>
         </Link>
+        <div className="flex-1">
+          <h1 className="font-jakarta font-extrabold text-lg text-on-surface">
+            {isShipMode ? "Prep Mode" : isTrackMode ? "Trade Journey" : "Transaction"}
+          </h1>
+          <p className="font-manrope text-xs text-on-surface-variant">
+            {isShipMode ? "Ready to Ship?" : isTrackMode ? "Tracking your drop" : `ID: ${transaction.id.slice(0, 8)}…`}
+          </p>
+        </div>
+        <span className={`label-md px-3 py-1 rounded-full sticker font-jakarta font-bold text-xs ${badge.cls}`}>
+          {badge.label}
+        </span>
       </header>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">Transaction Details</h1>
-              <p className="text-gray-600">Transaction ID: {transaction.id}</p>
-            </div>
-            <div className={`px-4 py-2 rounded-full font-semibold ${statusInfo.color}`}>
-              {statusInfo.text}
+      <div className="px-4 pt-4 space-y-4">
+
+        {/* Shoe card */}
+        <div className="bg-surface-lowest rounded-4xl overflow-hidden shadow-float flex">
+          <div className="w-28 h-28 bg-surface-low flex-shrink-0 relative">
+            {img
+              ? <img src={img} alt={transaction.shoe.brand} className="w-full h-full object-cover" />
+              : <span className="material-icons text-outline-variant absolute inset-0 m-auto" style={{ fontSize: 40 }}>image</span>
+            }
+          </div>
+          <div className="p-4 flex flex-col justify-center flex-1">
+            <p className="font-jakarta font-extrabold text-base text-on-surface">{transaction.shoe.brand}</p>
+            <p className="font-manrope text-xs text-on-surface-variant mb-2">
+              {transaction.shoe.color} · Size {transaction.shoe.size}
+            </p>
+            <div className="flex gap-2">
+              <span className="label-md bg-surface-high text-on-surface-variant px-2 py-0.5 rounded-full">
+                ${transaction.finalPrice.toFixed(2)}
+              </span>
+              <span className="label-md bg-surface-high text-on-surface-variant px-2 py-0.5 rounded-full">
+                +${transaction.serviceFee.toFixed(2)} fee
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Shoe Info */}
-          <div className="border-t pt-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Shoe Details</h2>
-            <div className="flex gap-4">
-              <img
-                src={images[0]}
-                alt={transaction.shoe.brand}
-                className="w-32 h-32 object-cover rounded-lg"
-              />
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">{transaction.shoe.brand}</h3>
-                <p className="text-gray-600">
-                  {transaction.shoe.color} • Size {transaction.shoe.size}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Parties */}
-          <div className="border-t pt-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Participants</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Seller</p>
-                <p className="font-semibold text-gray-800">
-                  {transaction.seller.name || transaction.seller.email}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Buyer</p>
-                <p className="font-semibold text-gray-800">
-                  {transaction.buyer?.name ||
-                    transaction.buyer?.email ||
-                    transaction.buyerName ||
-                    transaction.buyerEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pricing */}
-          <div className="border-t pt-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Pricing</h2>
-            <div className="space-y-2">
-              {transaction.offerPrice && (
-                <div className="flex justify-between text-orange-600">
-                  <span>Counteroffer Price:</span>
-                  <span className="font-semibold">${transaction.offerPrice.toFixed(2)}</span>
+        {/* === SHIP MODE: Prep Mode === */}
+        {isShipMode && (
+          <>
+            <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 rounded-2xl gradient-primary flex items-center justify-center">
+                  <span className="material-icons text-white" style={{ fontSize: 18 }}>rocket_launch</span>
                 </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shoe Price:</span>
-                <span className="font-semibold">${transaction.finalPrice.toFixed(2)}</span>
+                <div>
+                  <h2 className="font-jakarta font-extrabold text-base text-on-surface">Prep Mode</h2>
+                  <p className="font-manrope text-xs text-on-surface-variant">Check each step before you ship</p>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Service Fee:</span>
-                <span className="font-semibold">${transaction.serviceFee.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold border-t pt-2">
-                <span>Total:</span>
-                <span className="text-purple-600">${totalPrice.toFixed(2)}</span>
+              <div className="space-y-3">
+                {SHIP_STEPS.map((step, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setChecklist(prev => { const n = [...prev]; n[i] = !n[i]; return n })}
+                    className={`w-full flex items-center gap-3 p-3 rounded-3xl transition-all text-left ${checklist[i] ? "bg-secondary/10 ring-2 ring-secondary/30" : "bg-surface-low"}`}
+                  >
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${checklist[i] ? "gradient-primary" : "bg-surface-highest"}`}>
+                      <span className={`material-icons ${checklist[i] ? "text-white" : "text-on-surface-variant"}`} style={{ fontSize: 18 }}>
+                        {checklist[i] ? "check" : step.icon}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className={`font-jakarta font-bold text-sm ${checklist[i] ? "text-secondary line-through" : "text-on-surface"}`}>{step.label}</p>
+                      <p className="font-manrope text-xs text-on-surface-variant">{step.sub}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
 
-          {/* Shipping Info */}
-          {transaction.status === "SHIPPED" ||
-            transaction.status === "DELIVERED" ||
-            (transaction.status === "COMPLETED" && (
-              <div className="border-t pt-6 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Shipping</h2>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Method:</span>
-                    <span className="font-semibold">{transaction.shippingMethod}</span>
-                  </div>
-                  {transaction.trackingNumber && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tracking:</span>
-                      <span className="font-semibold">{transaction.trackingNumber}</span>
+            {/* Shipping details input */}
+            <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient space-y-3">
+              <h2 className="font-jakarta font-extrabold text-base text-on-surface">Shipping Details</h2>
+              <select
+                value={shippingMethod}
+                onChange={e => setShippingMethod(e.target.value)}
+                className="w-full bg-surface-low rounded-2xl px-4 py-2.5 font-manrope text-sm text-on-surface ghost-border focus:outline-none appearance-none"
+              >
+                <option value="">Select carrier…</option>
+                <option value="USPS">USPS</option>
+                <option value="UPS">UPS</option>
+                <option value="FedEx">FedEx</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Tracking number (optional)"
+                value={trackingNumber}
+                onChange={e => setTrackingNumber(e.target.value)}
+                className="w-full bg-surface-low rounded-2xl px-4 py-2.5 font-manrope text-sm text-on-surface ghost-border focus:outline-none"
+              />
+              {error && <p className="font-manrope text-xs text-primary">{error}</p>}
+            </div>
+
+            <button
+              onClick={() => handleAction("ship")}
+              disabled={isSubmitting || checklist.some(c => !c)}
+              className="w-full py-4 rounded-full gradient-primary text-white font-jakarta font-extrabold text-base shadow-pink-glow disabled:opacity-50"
+            >
+              {isSubmitting ? "Confirming…" : checklist.some(c => !c) ? `Complete ${checklist.filter(Boolean).length}/3 steps first` : "Confirm Shipment 🚀"}
+            </button>
+          </>
+        )}
+
+        {/* === TRACK MODE: Trade Journey === */}
+        {isTrackMode && (
+          <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient">
+            <h2 className="font-jakarta font-extrabold text-base text-on-surface mb-5">Trade Journey</h2>
+            <div className="relative">
+              {/* Vertical line */}
+              <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-surface-high" />
+              <div className="space-y-5">
+                {TRACK_STEPS.map((step, i) => {
+                  const done = step.status.includes(transaction.status)
+                  return (
+                    <div key={i} className="flex items-center gap-4 relative">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all ${done ? "gradient-primary shadow-pink-glow" : "bg-surface-high"}`}>
+                        <span className={`material-icons ${done ? "text-white" : "text-on-surface-variant"}`} style={{ fontSize: 18 }}>
+                          {step.icon}
+                        </span>
+                      </div>
+                      <div>
+                        <p className={`font-jakarta font-bold text-sm ${done ? "text-on-surface" : "text-on-surface-variant"}`}>{step.label}</p>
+                        {i === 2 && transaction.trackingNumber && done && (
+                          <p className="font-manrope text-xs text-on-surface-variant">#{transaction.trackingNumber}</p>
+                        )}
+                        {i === 2 && transaction.shippedAt && done && (
+                          <p className="font-manrope text-xs text-on-surface-variant">{new Date(transaction.shippedAt).toLocaleDateString()}</p>
+                        )}
+                        {i === 3 && transaction.deliveredAt && done && (
+                          <p className="font-manrope text-xs text-on-surface-variant">{new Date(transaction.deliveredAt).toLocaleDateString()}</p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  {transaction.shippedAt && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Shipped:</span>
-                      <span className="font-semibold">
-                        {new Date(transaction.shippedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
-                  {transaction.deliveredAt && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Delivered:</span>
-                      <span className="font-semibold">
-                        {new Date(transaction.deliveredAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
+                  )
+                })}
+              </div>
+            </div>
+
+            {transaction.shippingMethod && (
+              <div className="mt-4 flex items-center gap-3 bg-surface-low rounded-3xl p-3">
+                <span className="material-icons text-primary" style={{ fontSize: 20 }}>local_shipping</span>
+                <p className="font-manrope text-sm text-on-surface">{transaction.shippingMethod}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Seller: counteroffer */}
+        {isSeller && transaction.status === "COUNTEROFFER" && (
+          <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient">
+            <h2 className="font-jakarta font-extrabold text-base text-on-surface mb-3">
+              Buyer offered ${transaction.offerPrice?.toFixed(2)}
+            </h2>
+            <div className="flex gap-3">
+              <button onClick={() => handleAction("accept")} disabled={isSubmitting}
+                className="flex-1 py-3 rounded-full bg-secondary/10 text-secondary font-jakarta font-bold text-sm">
+                Accept
+              </button>
+              <button onClick={() => handleAction("reject")} disabled={isSubmitting}
+                className="flex-1 py-3 rounded-full bg-primary/10 text-primary font-jakarta font-bold text-sm">
+                Decline
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Buyer: confirm delivery */}
+        {isBuyer && transaction.status === "SHIPPED" && (
+          <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient">
+            <h2 className="font-jakarta font-extrabold text-base text-on-surface mb-1">Got your kicks?</h2>
+            <p className="font-manrope text-xs text-on-surface-variant mb-3">Confirm delivery to release payment to the seller.</p>
+            <button onClick={() => handleAction("confirm_delivery")} disabled={isSubmitting}
+              className="w-full py-3.5 rounded-full gradient-primary text-white font-jakarta font-extrabold shadow-pink-glow">
+              {isSubmitting ? "Processing…" : "Confirm Delivery ✓"}
+            </button>
+          </div>
+        )}
+
+        {/* Rate link */}
+        {isBuyer && transaction.status === "DELIVERED" && (
+          <Link href={`/rate/${transaction.id}`}
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full gradient-primary text-white font-jakarta font-extrabold shadow-pink-glow">
+            <span className="material-icons" style={{ fontSize: 18 }}>star</span>
+            Rate This Trade
+          </Link>
+        )}
+
+        {/* Error */}
+        {error && !isShipMode && (
+          <p className="font-manrope text-xs text-primary text-center">{error}</p>
+        )}
+
+        {/* Price summary */}
+        <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient space-y-2">
+          <h2 className="font-jakarta font-extrabold text-base text-on-surface">Order Summary</h2>
+          <div className="flex justify-between font-manrope text-sm">
+            <span className="text-on-surface-variant">Shoe price</span>
+            <span className="font-semibold text-on-surface">${transaction.finalPrice.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-manrope text-sm">
+            <span className="text-on-surface-variant">Service fee</span>
+            <span className="font-semibold text-on-surface">${transaction.serviceFee.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-jakarta font-bold text-base border-t border-surface-high pt-2">
+            <span>Total</span>
+            <span className="text-primary">${totalPrice.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Parties */}
+        <div className="bg-surface-lowest rounded-4xl p-5 shadow-ambient">
+          <h2 className="font-jakarta font-extrabold text-sm text-on-surface mb-3">People</h2>
+          <div className="space-y-2">
+            {[
+              { role: "Seller", user: transaction.seller },
+              { role: "Buyer",  user: transaction.buyer ?? { name: transaction.buyerName, email: transaction.buyerEmail, id: "" } },
+            ].map(({ role, user }) => user && (
+              <div key={role} className="flex items-center gap-3 bg-surface-low rounded-3xl p-3">
+                <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
+                  <span className="font-jakarta font-extrabold text-xs text-white">
+                    {(user.name ?? user.email ?? "?").slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-jakarta font-bold text-sm text-on-surface">{user.name ?? user.email ?? "—"}</p>
+                  <p className="font-manrope text-xs text-on-surface-variant">{role}</p>
                 </div>
               </div>
             ))}
-
-          {/* Actions */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
-            </div>
-          )}
-
-          {/* Seller Actions */}
-          {isSeller && transaction.status === "COUNTEROFFER" && (
-            <div className="border-t pt-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Buyer offered ${transaction.offerPrice?.toFixed(2)}
-              </h3>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => handleAction("accept")}
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400"
-                >
-                  Accept Offer
-                </button>
-                <button
-                  onClick={() => handleAction("reject")}
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition disabled:bg-gray-400"
-                >
-                  Reject Offer
-                </button>
-              </div>
-            </div>
-          )}
-
-          {isSeller &&
-            (transaction.status === "ACCEPTED" || transaction.status === "PAID") && (
-              <div className="border-t pt-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Confirm Shipment</h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Shipping Method (e.g., USPS, UPS, FedEx) *"
-                    value={shippingMethod}
-                    onChange={(e) => setShippingMethod(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Tracking Number (optional)"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={() => handleAction("ship")}
-                    disabled={isSubmitting}
-                    className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition disabled:bg-gray-400"
-                  >
-                    {isSubmitting ? "Processing..." : "Confirm Shipment"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-          {/* Buyer Actions */}
-          {isBuyer && transaction.status === "SHIPPED" && (
-            <div className="border-t pt-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Confirm Delivery
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Once you receive the shoes, please confirm delivery below.
-              </p>
-              <button
-                onClick={() => handleAction("confirm_delivery")}
-                disabled={isSubmitting}
-                className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400"
-              >
-                {isSubmitting ? "Processing..." : "Confirm Delivery"}
-              </button>
-            </div>
-          )}
-
-          {isBuyer && transaction.status === "DELIVERED" && (
-            <div className="border-t pt-6">
-              <Link
-                href={`/rate/${transaction.id}`}
-                className="block w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition text-center"
-              >
-                Rate This Transaction
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
+
       </div>
-    </main>
+    </div>
   )
 }
