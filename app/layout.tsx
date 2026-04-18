@@ -16,7 +16,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "The Urban Playground | Kids' Shoe Marketplace",
+  title: "Shoe Shoe | Kids' Shoe Marketplace",
   description: "The 100% kids-only marketplace. Toddlers to Teens, curated for the next generation of sneakerheads.",
 };
 

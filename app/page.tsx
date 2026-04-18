@@ -91,7 +91,7 @@ export default function Home() {
         </div>
 
         <h1 className="display-lg text-white mb-3" style={{ fontFamily: "var(--font-jakarta)" }}>
-          THE URBAN<br />PLAYGROUND
+          SHOE<br />SHOE
         </h1>
 
         <p className="font-manrope text-white/80 text-sm mb-6 max-w-xs leading-relaxed">

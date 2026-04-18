@@ -74,7 +74,7 @@ export default function AdminDashboard() {
         <div className="sticker inline-block mb-3">
           <span className="label-md bg-white text-primary px-3 py-1 rounded-full">Live Ops</span>
         </div>
-        <p className="font-jakarta font-extrabold text-2xl text-white mb-1">The Urban Playground</p>
+        <p className="font-jakarta font-extrabold text-2xl text-white mb-1">Shoe Shoe</p>
         <p className="font-manrope text-sm text-white/70">Admin dashboard · Real-time overview</p>
         <div
           className="absolute right-[-30px] bottom-[-20px] w-48 h-48 rounded-full opacity-20"
