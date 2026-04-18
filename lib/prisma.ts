@@ -8,7 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const dbUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db"
-  const libsql = createClient({ url: dbUrl })
+  const authToken = process.env.TURSO_AUTH_TOKEN
+  const libsql = createClient({ url: dbUrl, ...(authToken ? { authToken } : {}) })
   const adapter = new PrismaLibSQL(libsql)
   return new PrismaClient({ adapter } as any)
 }
