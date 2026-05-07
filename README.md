@@ -1,46 +1,160 @@
-# Shoe Shoe - Children's Shoe Marketplace
+# Beef - Paid Dissent Platform
 
-A full-stack marketplace for buying and selling children's shoes - singles or pairs!
+**"Put money where your mouth is."**
 
-## Features
+A platform that turns internet arguments into structured, monetized debates. No endless reply chains. Post a claim, price your conviction, and let the internet watch it burn in a controlled arena.
 
-- **Landing Page**: Choose between single shoes or pairs
-- **Buy/Sell Portal**: Separate portals for buyers and sellers
-- **Seller Features**:
-  - Upload shoes with images (up to 5 images)
-  - Set brand, year, color, size, condition, description, and price
-  - Manage listings and transactions
-  - Confirm shipment with tracking
-  - Receive ratings from buyers
+---
 
-- **Buyer Features**:
-  - Browse available shoes in tile/grid format
-  - Make offers or buy at asking price
-  - Guest checkout option
-  - Track shipment
-  - Rate sellers after delivery
+## 🎯 Core Concept
 
-- **Transaction Flow**:
-  - Buyer initiates purchase or makes counteroffer
-  - Seller accepts/rejects counteroffer
-  - Payment processing placeholder
-  - Shipping confirmation with tracking
-  - Delivery confirmation
-  - Rating system
+Beef transforms performative posting into structured contests where:
+- **Conviction has a price** - Users put real money behind their claims
+- **The arena has rules** - Structured 24-hour debate format with rounds
+- **The crowd fuels the spectacle** - Spectators watch and place sidecards (predictions)
+- **Judges determine winners** - AI panel + rubric scores determine outcomes
+- **One appeal, then done** - Fair but firm dispute resolution
 
-- **Notifications**: Real-time notifications for sellers on sales, counteroffers, and ratings
+---
 
-- **Service Fee**: $0.99 fee added to each purchase
+## 🚀 Features
 
-## Tech Stack
+### For Debaters
 
-- **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Database**: SQLite (via Prisma ORM)
-- **Authentication**: NextAuth.js (email/password + guest support)
-- **Image Storage**: Base64 (can be upgraded to Cloudinary)
+**Stage 1: Enter Arena**
+- Browse debates freely without account
+- Verify identity only when money is involved (KYC on-demand)
 
-## Getting Started
+**Stage 2: Post a Claim**
+- Write a claim (statement to debate)
+- Choose debate type: Persuasion, Objective Claim, or Taste Battle
+- Set your ante: $10, $25, $50, or $100
+- Select category: Politics, Culture, Sports, Tech, or Callouts
+
+**Stage 3: Match the Beef**
+- Another user accepts and matches your ante
+- 24-hour clock starts immediately
+
+**Stage 4: Debate Live**
+- **Round 1 (Opening)**: 220-character thesis statements
+- **Round 2 (Receipts)**: Evidence round with links, screenshots, sources
+- **Round 3 (Closing)**: Final arguments before judging
+
+**Stage 5: Judge the Match**
+- Panel of 3 AI models + published rubric
+- Transparent decision trace and scoring
+- Winner declared when clock expires or someone concedes
+
+**Stage 6: Appeal Once**
+- Single appeal allowed to keep platform firm but fair
+- Appeal review by different judge panel
+
+**Stage 7: Pay, Share, Repeat**
+- Winner gets the pot
+- Debate becomes part of public record
+- Users build reputation with wins/losses
+
+### For Spectators
+
+- **Free to watch** - No account needed to view live debates
+- **Sidecards** - Place predictions on debate outcomes (separate from main pot)
+- **Follow debaters** - Track your favorite arguers
+- **Crowd pulse** - See prediction splits (FIRE/FACTS/RECKLESS categories)
+- **Comment feed** - Real-time reactions from spectators
+
+### 🔥 Killer Feature: "Take This to Beef"
+
+**One-button import from other platforms:**
+- Scrape entire threads from X/Twitter, Discord, Reddit, 4chan
+- Auto-generate claim from the argument
+- Tag both parties (invite if not on platform)
+- Original thread becomes "receipts" in the debate
+- Viral loop: "We're taking this to Beef" becomes the new "1v1 me"
+
+---
+
+## 🎨 Design System
+
+**Color Palette:**
+- **Background**: Very dark brown/almost black (#0A0806)
+- **Card Background**: Dark brown (#2A1F18)
+- **Accent**: Muted gold (#D4A574) and bright orange (#FF6B47)
+- **Text**: Off-white (#F5F1ED) and muted (#A89885)
+
+**Typography:**
+- Font: Inter
+- Bold, tracking-tight headings
+- Clean, modern sans-serif
+
+**UI Style:**
+- Fight card aesthetic (UFC/boxing inspired)
+- High contrast design
+- Glowing accents for CTAs
+- Rounded corners on cards
+- Dark, sophisticated, premium feel
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Database**: SQLite (via Prisma ORM 7)
+- **Authentication**: NextAuth.js (planned)
+- **Payments**: Stripe (planned)
+- **Judging**: Claude API for AI judge panels (planned)
+
+---
+
+## 📦 Database Schema
+
+### Core Models
+
+**User**
+- Authentication (email, password, username, handle)
+- Profile (bio, verified status, region, wallet)
+- Stats (wins, losses, total earnings)
+- Preferences (anonymous mode)
+
+**Beef (Debate)**
+- Claim and metadata (category, debate type)
+- Participants (challenger, responder)
+- Stakes (ante, total pot)
+- Timing (24-hour clock)
+- Status (open, matched, live, judging, completed)
+- Judging (type, winner, rubric, decision, appeals)
+
+**Round**
+- Round number and type (opening, receipts, closing)
+- Content from both sides
+- Evidence/receipts (links, screenshots)
+- Timestamps
+
+**Sidecard**
+- Spectator predictions
+- Predicted winner and stake amount
+- Category (FIRE, FACTS, RECKLESS)
+- Payout tracking
+
+**ThreadImport**
+- Platform source (Twitter, Discord, Reddit, 4chan)
+- Original thread URL and scraped data
+- Participant mapping
+- Linked to created Beef
+
+**Rating**
+- Post-debate user ratings
+- Score (1-5 stars)
+- Comments
+
+**Transaction**
+- Payment tracking (ante, sidecard, payout, refund)
+- Payment provider integration
+- Status tracking
+
+---
+
+## 🚦 Getting Started
 
 ### Prerequisites
 
@@ -49,120 +163,147 @@ A full-stack marketplace for buying and selling children's shoes - singles or pa
 
 ### Installation
 
-1. Navigate to the project directory:
+1. **Navigate to project directory:**
    ```bash
-   cd shoe-shoe
+   cd shoe-shoe  # (will be renamed to beef)
    ```
 
-2. Install dependencies (already done):
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. Set up the database:
+3. **Set up database:**
    ```bash
    npx prisma generate
    npx prisma db push
    ```
 
-4. Run the development server:
+4. **Run development server:**
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. **Open browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-## Environment Variables
+### Environment Variables
 
-The `.env` file is already configured with defaults:
+Create a `.env` file with:
 
-- `DATABASE_URL`: SQLite database file location
-- `NEXTAUTH_SECRET`: Secret for NextAuth (change in production!)
-- `NEXTAUTH_URL`: URL for NextAuth callbacks
+```env
+DATABASE_URL="file:./prisma/dev.db"
+NEXTAUTH_SECRET="your-secret-key-change-in-production"
+NEXTAUTH_URL="http://localhost:3000"
 
-### Optional (for production):
+# Payment (add when ready)
+# STRIPE_SECRET_KEY=
+# STRIPE_PUBLISHABLE_KEY=
 
-- Cloudinary credentials for image hosting
-- Stripe credentials for payment processing
-
-## Project Structure
-
-```
-shoe-shoe/
-├── app/
-│   ├── api/              # API routes
-│   │   ├── auth/         # Authentication endpoints
-│   │   ├── shoes/        # Shoe listing endpoints
-│   │   ├── transactions/ # Transaction endpoints
-│   │   ├── ratings/      # Rating endpoints
-│   │   └── notifications/# Notification endpoints
-│   ├── auth/             # Auth pages
-│   ├── buy/              # Buyer browse page
-│   ├── sell/             # Seller upload page
-│   ├── shoe/[id]/        # Individual shoe detail page
-│   ├── transaction/[id]/ # Transaction detail page
-│   ├── rate/[id]/        # Rating page
-│   ├── notifications/    # Notifications page
-│   ├── portal/           # Buy/Sell selection page
-│   └── page.tsx          # Landing page
-├── components/           # React components
-├── lib/                  # Utilities
-│   ├── auth.ts          # NextAuth configuration
-│   └── prisma.ts        # Prisma client
-├── prisma/
-│   └── schema.prisma    # Database schema
-└── types/               # TypeScript type definitions
+# Thread Import APIs (add when ready)
+# TWITTER_API_KEY=
+# DISCORD_BOT_TOKEN=
+# REDDIT_CLIENT_ID=
 ```
 
-## Database Schema
+---
 
-- **User**: Authentication and profile data
-- **Shoe**: Shoe listings with details
-- **Transaction**: Sales and purchases
-- **Rating**: User ratings
-- **Notification**: User notifications
+## 🎯 What's Been Built
 
-## Usage
+✅ **Landing Page** - Full POC design implemented
+- Hero section with tagline and CTAs
+- Browse categories and sort options
+- Stats dashboard (Live Pot, Open Challenges, Spectators, etc.)
+- "How Beef Actually Runs" - 7-stage flow
+- "Enter Arena" - User experience section
+- "What Must Be True" - Operational requirements
+- Product positioning
 
-### For Sellers:
+✅ **Database Schema** - Complete data models
+- Users, Beefs, Rounds, Sidecards
+- Ratings, Follows, Thread Imports
+- Transaction tracking
 
-1. Sign up or sign in
-2. Choose "Single Shoes" or "Pairs" from the homepage
-3. Click "Sell"
-4. Fill out the shoe details form
-5. Upload images (up to 5)
-6. Set your price
-7. Wait for buyers to make offers
-8. Accept/reject counteroffers
-9. Confirm shipment when ready
-10. Receive ratings from buyers
+✅ **Design System** - Full Tailwind config
+- Dark brown/gold color palette
+- Custom components and utilities
+- Matching POC aesthetic
 
-### For Buyers:
+---
 
-1. Choose "Single Shoes" or "Pairs" from the homepage
-2. Click "Buy"
-3. Browse available shoes
-4. Click on a shoe to view details
-5. Make an offer or buy at asking price
-6. Can checkout as guest or signed-in user
-7. Wait for seller to accept
-8. Receive shipping confirmation
-9. Confirm delivery
-10. Rate the seller
+## 📋 What's Next
 
-## Future Enhancements
+### Phase 1: Core Functionality
+- [ ] **Authentication** - NextAuth setup with email/password
+- [ ] **Create Beef Flow** - Form to post claims and set antes
+- [ ] **Match System** - Accept/challenge interface
+- [ ] **Debate Interface** - Real-time round submission UI
+- [ ] **Timer System** - 24-hour countdown with notifications
+- [ ] **Browse/Filter** - Category and sort functionality
 
-- Payment integration with Stripe
-- Image hosting with Cloudinary
-- Email notifications
-- Advanced search and filtering
-- Seller profiles with ratings
-- Messaging system between buyers and sellers
-- Mobile app companion
-- Social media integration
-- Saved searches and favorites
-- Price negotiation chat
+### Phase 2: Judging & Payouts
+- [ ] **AI Judge Integration** - Claude API for debate scoring
+- [ ] **Rubric System** - Visible scoring criteria
+- [ ] **Appeal Flow** - One-time appeal interface
+- [ ] **Payment Integration** - Stripe for antes and payouts
+- [ ] **Wallet/Balance** - User account balance tracking
 
-## License
+### Phase 3: Spectator Features
+- [ ] **Sidecard System** - Prediction market for debates
+- [ ] **Follow System** - Track favorite debaters
+- [ ] **Live Feed** - Real-time debate updates
+- [ ] **Crowd Pulse** - Prediction splits visualization
+- [ ] **Comments** - Spectator reactions
+
+### Phase 4: Viral Growth
+- [ ] **Thread Import** - "Take this to Beef" button
+  - Twitter/X API integration
+  - Discord bot
+  - Reddit API
+  - 4chan scraper (read-only)
+- [ ] **Share Cards** - Beautiful debate result images
+- [ ] **Leaderboards** - Top debaters by category
+- [ ] **Viral Hooks** - Embeddable widgets for external sites
+
+### Phase 5: Polish & Scale
+- [ ] **Notifications** - Email/push for debate updates
+- [ ] **Mobile App** - React Native companion
+- [ ] **Moderation Tools** - Admin panel for risky claims
+- [ ] **Analytics** - User dashboard with stats
+- [ ] **Regional Controls** - Compliance with local laws
+
+---
+
+## 🎭 Product Philosophy
+
+### What Must Be True
+
+**Identity**
+- Users browse freely, but money-moving actions require verified payment identity and region controls
+
+**Moderation**
+- Risky claims need category gating, claim framing rules, and escalation hooks before a match goes live
+
+**Judging**
+- Every resolved Beef needs a visible rubric, source record, decision trace, and one-appeal ceiling
+
+**Separation**
+- The debate pot, spectator sidecards, and crowd reactions must be distinct products in both UX and accounting
+
+---
+
+## 📜 License
 
 MIT
+
+---
+
+## 🤝 Contributing
+
+This is currently a private project. Contributions will be opened up in future phases.
+
+---
+
+**Beef turns performative posting into a structured contest. Conviction has a price, the arena has rules, and the crowd fuels the spectacle without owning the result.**
+
+*Put money where your mouth is.*
