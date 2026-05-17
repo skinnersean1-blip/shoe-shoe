@@ -58,6 +58,8 @@ model Beef {
   status        String    @default("OPEN") // OPEN, LIVE, JUDGING, COMPLETED
 
   winnerId      String?
+  judgeId       String?   // e.g. "claude", "grok", "chatgpt"
+  judgeName     String?   // e.g. "Claude", "Grok 3", "GPT-4o"
   judgeDecision String?   // LLM verdict text
   appealStatus  String?
 

@@ -176,7 +176,10 @@ export default async function BeefPage({ params }: { params: Promise<{ id: strin
               challengerHandle={beef.challenger.handle || beef.challenger.username}
               responderId={beef.responderId ?? null}
               responderHandle={beef.responder ? (beef.responder.handle || beef.responder.username) : null}
-              judgeDecision={beef.judgeDecision}
+              judgeId={beef.judgeId ?? null}
+              judgeName={beef.judgeName ?? null}
+              judgeDecision={beef.judgeDecision ?? null}
+              winnerId={beef.winnerId ?? null}
             />
           )}
 
