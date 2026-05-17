@@ -12,30 +12,27 @@ model User {
   email         String?   @unique
   username      String    @unique
   passwordHash  String?
-  handle        String?   @unique // Public handle like @username
+  handle        String?   @unique
   bio           String?
 
-  // Profile
   isVerified    Boolean   @default(false)
   region        String?
   walletAddress String?
 
-  // Stats
   wins          Int       @default(0)
   losses        Int       @default(0)
   totalEarnings Float     @default(0)
 
-  // Preferences
   isAnonymous   Boolean   @default(false)
 
-  // Relations
-  challengesCreated Beef[]   @relation("Challenger")
-  challengesAccepted Beef[]  @relation("Responder")
-  sidecards     Sidecard[]
-  ratings       Rating[]
-  following     Follow[]   @relation("Follower")
-  followers     Follow[]   @relation("Following")
-  threadImports ThreadImport[]
+  challengesCreated  Beef[]    @relation("Challenger")
+  challengesAccepted Beef[]    @relation("Responder")
+  messages           Message[]
+  sidecards          Sidecard[]
+  ratings            Rating[]
+  following          Follow[]  @relation("Follower")
+  followers          Follow[]  @relation("Following")
+  threadImports      ThreadImport[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -44,41 +41,30 @@ model User {
 model Beef {
   id            String    @id @default(cuid())
 
-  // Claim
-  claim         String    // The statement being debated
-  category      String    // POLITICS, CULTURE, SPORTS, TECH, CALLOUTS
-  debateType    String    // PERSUASION, OBJECTIVE_CLAIM, TASTE_BATTLE
+  claim         String
+  categories    String    @default("[]") // JSON array: ["POLITICS","TECH"]
 
-  // Participants
   challengerId  String
   challenger    User      @relation("Challenger", fields: [challengerId], references: [id])
   responderId   String?
   responder     User?     @relation("Responder", fields: [responderId], references: [id])
 
-  // Stakes
-  ante          Float     // Entry amount ($10, $25, $50, $100)
-  totalPot      Float     // Total pot (challenger + responder ante)
+  ante          Float
+  totalPot      Float
 
-  // Timing
   startedAt     DateTime?
-  endsAt        DateTime? // 24 hours from match
+  endsAt        DateTime? // 24 hours from when match is accepted
 
-  // Status
-  status        String    @default("OPEN") // OPEN, MATCHED, LIVE, JUDGING, COMPLETED, APPEALED
+  status        String    @default("OPEN") // OPEN, LIVE, JUDGING, COMPLETED
 
-  // Judging
-  judgeType     String?   // PANEL_OF_3_MODELS, COMMUNITY, EXPERT
   winnerId      String?
-  judgeRubric   String?   // JSON of scoring criteria
-  judgeDecision String?   // Text explanation
-  appealStatus  String?   // null, APPEALED, APPEAL_DENIED, APPEAL_ACCEPTED
+  judgeDecision String?   // LLM verdict text
+  appealStatus  String?
 
-  // Metadata
   viewCount     Int       @default(0)
-  sideVolume    Float     @default(0) // Total sidecard volume
+  sideVolume    Float     @default(0)
 
-  // Relations
-  rounds        Round[]
+  messages      Message[]
   sidecards     Sidecard[]
   ratings       Rating[]
   threadImport  ThreadImport?
@@ -87,30 +73,18 @@ model Beef {
   updatedAt     DateTime  @updatedAt
 }
 
-model Round {
-  id            String    @id @default(cuid())
+model Message {
+  id        String   @id @default(cuid())
 
-  beefId        String
-  beef          Beef      @relation(fields: [beefId], references: [id], onDelete: Cascade)
+  beefId    String
+  beef      Beef     @relation(fields: [beefId], references: [id], onDelete: Cascade)
 
-  roundNumber   Int       // 1 (OPENING), 2 (RECEIPTS), 3 (CLOSING)
-  roundType     String    // OPENING, RECEIPTS, CLOSING
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
-  // Content
-  challengerContent String?
-  responderContent  String?
+  content   String
 
-  // Evidence/Receipts
-  challengerEvidence String? // JSON array of links/screenshots
-  responderEvidence  String? // JSON array of links/screenshots
-
-  // Timing
-  submittedAt   DateTime  @default(now())
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@unique([beefId, roundNumber])
+  createdAt DateTime @default(now())
 }
 
 model Sidecard {
@@ -122,15 +96,10 @@ model Sidecard {
   beefId        String
   beef          Beef      @relation(fields: [beefId], references: [id], onDelete: Cascade)
 
-  // Prediction
   predictedWinnerId String
-  stake         Float     // Amount wagered
+  stake         Float
 
-  // Categories
-  category      String?   // FIRE, FACTS, RECKLESS
-
-  // Payout
-  payout        Float?    // Calculated after beef resolves
+  payout        Float?
   isPaid        Boolean   @default(false)
 
   createdAt     DateTime  @default(now())
@@ -146,9 +115,9 @@ model Rating {
   raterId       String
   rater         User      @relation(fields: [raterId], references: [id])
 
-  ratedUserId   String    // Who is being rated
+  ratedUserId   String
 
-  score         Int       // 1-5 stars
+  score         Int
   comment       String?
 
   createdAt     DateTime  @default(now())
@@ -179,13 +148,10 @@ model ThreadImport {
   userId        String
   user          User      @relation(fields: [userId], references: [id])
 
-  // Source
-  platform      String    // TWITTER, DISCORD, REDDIT, FOURCHAN
-  sourceUrl     String    // Original thread URL
-  threadData    String    // JSON of scraped thread content
-
-  // Participants
-  participants  String    // JSON array of usernames from original thread
+  platform      String
+  sourceUrl     String
+  threadData    String
+  participants  String
 
   createdAt     DateTime  @default(now())
 }
@@ -198,12 +164,11 @@ model Transaction {
   amount        Float
   status        String    // PENDING, COMPLETED, FAILED
 
-  relatedBeefId String?
+  relatedBeefId     String?
   relatedSidecardId String?
 
-  // Payment provider data
-  paymentProvider String? // STRIPE, etc
-  paymentId     String?
+  paymentProvider String?
+  paymentId       String?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
