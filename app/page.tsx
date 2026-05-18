@@ -50,8 +50,8 @@ async function getFeed(category: string, sort: string) {
     orderBy,
     take: 20,
     include: {
-      challenger: { select: { handle: true, username: true, wins: true, losses: true } },
-      responder:  { select: { handle: true, username: true } },
+      challenger: { select: { handle: true, username: true, isAnonymous: true, anonHandle: true, wins: true, losses: true } },
+      responder:  { select: { handle: true, username: true, isAnonymous: true, anonHandle: true } },
       _count:     { select: { messages: true } },
     },
   });
@@ -201,13 +201,17 @@ export default async function Home({
                         {/* Participants */}
                         <div className="flex items-center gap-2 text-sm text-beef-text-muted">
                           <span className="text-beef-gold font-bold">
-                            @{beef.challenger.handle || beef.challenger.username}
+                            {(beef as any).challengerIsAnon || beef.challenger.isAnonymous
+                              ? (beef.challenger.anonHandle ?? "GHOST")
+                              : `@${beef.challenger.handle || beef.challenger.username}`}
                           </span>
                           {beef.responder && (
                             <>
                               <span className="text-beef-border font-bold">vs</span>
                               <span>
-                                @{beef.responder.handle || beef.responder.username}
+                                {(beef as any).responderIsAnon || beef.responder.isAnonymous
+                                  ? (beef.responder.anonHandle ?? "GHOST")
+                                  : `@${beef.responder.handle || beef.responder.username}`}
                               </span>
                             </>
                           )}

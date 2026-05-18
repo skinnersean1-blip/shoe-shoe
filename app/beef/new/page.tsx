@@ -270,7 +270,7 @@ export default function StartBeefPage() {
               </div>
 
               {/* Anon toggle — only for handled (non-ghost) users */}
-              {!session.user.isAnonymous && (
+              {!session.user.isAnonymous && session.user.handle && (
                 <button
                   type="button"
                   onClick={() => setGoAnon((v) => !v)}
