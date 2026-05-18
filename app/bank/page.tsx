@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -38,7 +38,7 @@ const TYPE_SIGN: Record<string, string> = {
   REFUND: "+",
 };
 
-export default function BankPage() {
+function BankContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -304,5 +304,13 @@ export default function BankPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BankPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="text-beef-text-muted">Loading...</p></div>}>
+      <BankContent />
+    </Suspense>
   );
 }
