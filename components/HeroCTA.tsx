@@ -10,11 +10,13 @@ export function HeroCTA() {
 
   return (
     <div className="flex gap-3 flex-wrap">
-      <Link href={session?.user ? "/beef/new" : "/auth/signup"}>
-        <button className="btn-primary text-sm px-8 py-4">
-          START A BEEF
-        </button>
-      </Link>
+      {!session?.user && (
+        <Link href="/auth/signup">
+          <button className="btn-primary text-sm px-8 py-4">
+            START A BEEF
+          </button>
+        </Link>
+      )}
       <a href="#feed">
         <button className="btn-secondary text-sm px-8 py-4">
           WATCH THE ARENA
